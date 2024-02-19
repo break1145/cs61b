@@ -109,20 +109,24 @@ public class Model extends Observable {
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
-
+        String backup = board.toString();
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+
+        board.setViewingPerspective(side);
+
 
         for(int col = board.size() - 1;col >= 0;col --) {
             int x[] = new int[4];
             int len = 0;
             if (board.tile(col, 3) != null) {x[0] = board.tile(col, 3).value();}
-            for(int i = board.size() - 2;i >= 0;i --) {
+            for(int i = board.size() - 1;i >= 0;i --) {
                 if(board.tile(col,i) != null) {
                     int currentVal = board.tile(col, i).value();
                     Tile t = board.tile(col, i);
                     x[i] = currentVal;
+                    // 根据当前元素到顶，遇到的第一个元素是否相同 以及合并次数判断移动距离
 
                     int moveStep = getMoveSteps(x, col, i, currentVal, len);
 
@@ -133,15 +137,21 @@ public class Model extends Observable {
 
                     board.move(col, moveStep, t);
                     update(x,col);
-                    changed = true;
+                    if(board.tile(col, moveStep) != null && moveStep != i) {
+                        changed = true;
+                    }
                 }
             }
         }
+
+        board.setViewingPerspective(Side.NORTH);
 
         checkGameOver();
         if (changed) {
             setChanged();
         }
+
+
         return changed;
     }
 
