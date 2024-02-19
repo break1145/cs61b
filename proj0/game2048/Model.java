@@ -114,6 +114,30 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
+        for(int col = board.size() - 1;col >= 0;col --) {
+            int x[] = new int[4];
+            int len = 0;
+            if (board.tile(col, 3) != null) {x[0] = board.tile(col, 3).value();}
+            for(int i = board.size() - 2;i >= 0;i --) {
+                if(board.tile(col,i) != null) {
+                    int currentVal = board.tile(col, i).value();
+                    Tile t = board.tile(col, i);
+                    x[i] = currentVal;
+
+                    int moveStep = getMoveSteps(x, col, i, currentVal, len);
+
+                    if(board.tile(col, moveStep) != null && moveStep != i) {
+                        score += 2* board.tile(col, moveStep).value();
+                        len ++;
+                    }
+
+                    board.move(col, moveStep, t);
+                    update(x,col);
+                    changed = true;
+                }
+            }
+        }
+
         checkGameOver();
         if (changed) {
             setChanged();
@@ -121,6 +145,31 @@ public class Model extends Observable {
         return changed;
     }
 
+    /*
+    * 合并:当前元素到顶行，第一个数相同
+    * !合并:当前元素到顶行，第一个数不同
+    * */
+    private int getMoveSteps(int[] x, int col, int row, int currentVal, int len){
+        int res = 0;
+        for(res = row; res < x.length- len - 1;res ++){
+            if(currentVal != x[res + 1] && x[res + 1] != 0) return res;
+            else if (currentVal == x[res + 1]) {
+                return res + 1;
+            }
+        }
+        return res;
+    }
+    private void update(int[] x,int col){
+        for(int i = 0;i < board.size();i ++){
+            if(board.tile(col, i) != null) {
+                x[i] = board.tile(col, i).value();
+            }
+            else {
+                x[i] = 0;
+            }
+        }
+
+    }
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
      */
