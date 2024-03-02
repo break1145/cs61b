@@ -24,6 +24,7 @@ public class ArrayDeque<Type> {
 
     }
     public Type removeLast() {
+        if(size == 0) return null;
         size = size - 1;
         idx_l = (idx_l + length - 1) % length;
         Type val = (Type) arr[idx_l];
@@ -31,6 +32,7 @@ public class ArrayDeque<Type> {
         return val;
     }
     public Type removeFirst() {
+        if(size == 0) return null;
         size = size - 1;
         Type val = (Type) arr[idx_f];
         arr[idx_f] = null;
