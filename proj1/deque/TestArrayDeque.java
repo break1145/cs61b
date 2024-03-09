@@ -176,7 +176,7 @@ public class TestArrayDeque {
             ad.addFirst(5);
             ad.addLast(6);
         System.out.println(ad.size());
-        System.out.println(ad.getLength());
+//        System.out.println(ad.getLength());
     }
     @Test
     public void test_remove_add_first_IsEmpty() {

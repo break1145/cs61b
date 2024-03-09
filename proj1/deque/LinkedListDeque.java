@@ -125,6 +125,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         }
         return null;
     }
+    public T getRecursive(int index) {
+        return get(index);
+    }
 
     /**
      * remove and delete the first node of the list
@@ -177,15 +180,20 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         System.out.println();
     }
 
-    public boolean equals(LinkedListDeque<T> lld) {
-        boolean equals = true;
-        for(int i = 0;i < lld.size;i ++) {
-            if(lld.get(i) != this.get(i)) {
-                equals = false;
-                break;
+    public boolean equals(Object o) {
+        if (!(o instanceof Deque) || ((Deque<?>) o).size() != this.size()) {
+            return false;
+        }
+        if (o == this) {
+            return true;
+        }
+        for (int i = 0; i < this.size(); i++) {
+            Object item = ((Deque<?>) o).get(i);
+            if (!(this.get(i).equals(item))) {
+                return false;
             }
         }
-        return equals;
+        return true;
     }
 
     private static class dequeNode<T> {

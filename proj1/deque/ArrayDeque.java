@@ -18,13 +18,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         idx_f = arr.length / 2 - 1;
         idx_l = arr.length / 2;
     }
-    public ArrayDeque(int size) {
-        arr = new Object[size];
-        size = 0;
-        length = arr.length;
-        idx_f = arr.length / 2 - 1;
-        idx_l = arr.length / 2;
-    }
 
     public Iterator<T> iterator() {
         return new arrdqIterator();
@@ -150,19 +143,24 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return size;
     }
 
-    public int getLength() {
+    private int getLength() {
         return length;
     }
 
-    public boolean equals(ArrayDeque<T> ad) {
-        boolean equals = true;
-        for(int i = 0;i < ad.size;i ++) {
-            if(ad.get(i) != this.get(i)) {
-                equals = false;
-                break;
+    public boolean equals(Object o) {
+        if (!(o instanceof Deque) || ((Deque<?>) o).size() != this.size()) {
+            return false;
+        }
+        if (o == this) {
+            return true;
+        }
+        for (int i = 0; i < this.size(); i++) {
+            Object item = ((Deque<?>) o).get(i);
+            if (!(this.get(i).equals(item))) {
+                return false;
             }
         }
-        return equals;
+        return true;
     }
 
     private enum direction {
