@@ -1,6 +1,6 @@
 package deque;
 
-public class LinkedListDeque<Type> {
+public class LinkedListDeque<Type> implements Deque<Type>{
 
     private static class dequeNode<T>{
         public T val;
@@ -39,10 +39,11 @@ public class LinkedListDeque<Type> {
 
     /**
      * last <-> sentinel <-> First <->sentinel1 <-> last
+     *
      * @param val value to addLast
-     * @return value to add
      */
-    public Type addLast(Type val) {
+    @Override
+    public void addLast(Type val) {
         size += 1;
         dequeNode<Type> newNode = new dequeNode<>(val);
         dequeNode<Type> p = sentinel.pre;
@@ -57,15 +58,16 @@ public class LinkedListDeque<Type> {
             sentinel1.nxt = newNode;
         }
 
-        return val;
+//        return val;
     }
 
     /**
      * last <-> sentinel <-> First <->sentinel1 <-> last
+     *
      * @param val value to addFirst
-     * @return value to add
      */
-    public Type addFirst(Type val) {
+    @Override
+    public void addFirst(Type val) {
         size += 1;
         dequeNode<Type> newNode = new dequeNode<>(val);
         dequeNode<Type> p = sentinel.nxt;
@@ -79,9 +81,10 @@ public class LinkedListDeque<Type> {
             newNode.nxt = sentinel1;
             sentinel1.pre = newNode;
         }
-        return val;
+//        return val;
     }
 
+    @Override
     public int size() {return size;}
 
     public Type getLast() {return sentinel.pre.val;}
@@ -91,6 +94,7 @@ public class LinkedListDeque<Type> {
     /**
      * remove and delete the last node of the list
      * */
+    @Override
     public Type removeLast() {
         if(size == 0){return null;}
         size -= 1;
@@ -110,9 +114,25 @@ public class LinkedListDeque<Type> {
         return val;
     }
 
+    @Override
+    public Type get(int index) {
+        dequeNode<Type> p = sentinel;
+        int idx = 0;
+        while(p.nxt != sentinel) {
+            idx += 1;
+            p = p.nxt;
+            if (p.val == null) {continue;}
+            if (idx == index) {
+                return p.val;
+            }
+        }
+        return null;
+    }
+
     /**
      * remove and delete the first node of the list
      * */
+    @Override
     public Type removeFirst() {
         if(size == 0){return null;}
         size -=1;
@@ -131,23 +151,31 @@ public class LinkedListDeque<Type> {
         return val;
     }
 
-    public String printDeque() {
-        StringBuilder str = new StringBuilder();
+//    public String printDeque() {
+//        StringBuilder str = new StringBuilder();
+//        dequeNode<Type> p = sentinel;
+//        while(p .nxt != sentinel) {
+//            p = p.nxt;
+//            if (p.val == null) {continue;}
+//            str.append(p.val);
+//            str.append(' ');
+//            System.out.printf(p.val.toString() + ' ');
+//        }
+//        System.out.println();
+//        return str.toString();
+//    }
+    @Override
+    public void printDeque() {
         dequeNode<Type> p = sentinel;
         while(p .nxt != sentinel) {
             p = p.nxt;
             if (p.val == null) {continue;}
-            str.append(p.val);
-            str.append(' ');
-            System.out.printf(p.val.toString() + ' ');
+            System.out.print(p.val.toString() + ' ');
+
         }
         System.out.println();
-        return str.toString();
     }
 
-    public boolean isEmpty() {
-        return size == 0;
-    }
 
 
 
