@@ -3,10 +3,11 @@ package deque;
 import org.junit.Test;
 
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
-public class ArrayDeque<Type> implements Deque<Type>, Iterable<Type> {
-    private class arrdqIterator implements Iterator<Type> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
+    private class arrdqIterator implements Iterator<T> {
         private int idx;
         public arrdqIterator() {
             idx = 0;
@@ -16,13 +17,13 @@ public class ArrayDeque<Type> implements Deque<Type>, Iterable<Type> {
             return idx < size;
         }
         @Override
-        public Type next() {
-            Type val =  get(idx);
+        public T next() {
+            T val =  get(idx);
             idx = idx + 1;
             return val;
         }
     }
-    public Iterator<Type> iterator() {
+    public Iterator<T> iterator() {
         return new arrdqIterator();
     }
     private Object[] arr;
@@ -36,83 +37,72 @@ public class ArrayDeque<Type> implements Deque<Type>, Iterable<Type> {
         idx_f = arr.length/ 2 - 1;
         idx_l = arr.length/ 2;
     }
-    public enum direction
+    private enum direction
     {
         LEFT, RIGHT;
     }
     @Override
-    public void addLast(Type val) {
+    public void addLast(T val) {
 
         size = size + 1;
         arr[idx_l] = val;
-        idx_l = idx_l + 1;
         if(idx_l + 1 == length) {
             resize(length + length/ 2, direction.RIGHT);
         }
+        idx_l = idx_l + 1;
+
     }
     @Override
-    public void addFirst(Type val) {
+    public void addFirst(T val) {
 
         size = size + 1;
         arr[idx_f] = val;
-        idx_f = idx_f - 1;
         if(idx_f - 1 < 0)  {
             resize(length + length/ 2, direction.LEFT);
         }
+        idx_f = idx_f - 1;
+
     }
     @Override
-    public Type removeLast() {
+    public T removeLast() {
         if(size == 0) return null;
         size = size - 1;
         idx_l = idx_l - 1;
-        Type val = (Type) arr[idx_l];
+        T val = (T) arr[idx_l];
         arr[idx_l] = null;
-
-
-        if(size < length/ 4) {
+        if(size < length/ 4 && length > 8) {
             resize(length/2);
         }
 
         return val;
     }
     @Override
-    public Type removeFirst() {
+    public T removeFirst() {
         if(size == 0) return null;
         size = size - 1;
         idx_f = idx_f + 1;
-        Type val = (Type) arr[idx_f];
+        T val = (T) arr[idx_f];
         arr[idx_f] = null;
-        if(size < length/ 4) {
+        if(size < length/ 4 && length > 8) {
             resize(length/2);
         }
 
         return val;
     }
     @Override
-    public Type get(int idx) {
+    public T get(int idx) {
         if(idx > size) {
             return null;
         }
-        Type val = (Type) arr[idx_f + idx + 1];
+        T val = (T) arr[idx_f + idx + 1];
         return val ;
     }
-//    public String printDeque() {
-//        StringBuilder stringBuilder = new StringBuilder();
-//        Iterator<Type> it = this.iterator();
-//        while(it.hasNext()) {
-//            stringBuilder.append(it.next().toString());
-//            stringBuilder.append(' ');
-//        }
-//        return stringBuilder.toString();
-//
-//    }
     @Override
     public void printDeque() {
-        Iterator<Type> it = this.iterator();
+        Iterator<T> it = this.iterator();
         while(it.hasNext()) {
             System.out.print(it.next().toString() + ' ');
         }
-
 
     }
     /**
@@ -136,13 +126,20 @@ public class ArrayDeque<Type> implements Deque<Type>, Iterable<Type> {
     private void resize(int aimSize, direction d) {
         Object[] newArr = new Object[aimSize];
         if(d == direction.RIGHT) {
-            System.arraycopy(this.arr, idx_f, newArr, 0, size);
+            System.arraycopy(this.arr, idx_f, newArr, idx_f, size+ 1);
             this.length = aimSize;
             this.arr = newArr;
         } else {
             System.arraycopy(this.arr, idx_f, newArr, length/2, size+ 1);
-            this.idx_f = length/2 ;
-            this.idx_l = idx_f + size+ 1;
+            if (idx_f == 0) {
+                idx_f = length/2;
+                this.idx_l = idx_f + size;
+            } else {
+                this.idx_f = length/2 - 1;
+                this.idx_l = idx_f + size+ 1;
+            }
+
+
             this.length = aimSize;
             this.arr = newArr;
         }
@@ -152,5 +149,17 @@ public class ArrayDeque<Type> implements Deque<Type>, Iterable<Type> {
     @Override
     public int size() {return size;}
     public int getLength() {return length;}
+
+    public boolean equals(ArrayDeque<T> ad) {
+        ArrayList<T> al1 = new ArrayList<>();
+        ArrayList<T> al2 = new ArrayList<>();
+        for(T item : this) {
+            al1.add(item);
+        }
+        for(T item : this) {
+            al2.add(item);
+        }
+        return al1.equals(al2);
+    }
 
 }

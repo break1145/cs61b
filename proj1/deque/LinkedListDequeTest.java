@@ -1,6 +1,10 @@
 package deque;
 
 import org.junit.Test;
+
+import java.util.Iterator;
+import java.util.Optional;
+import org.junit.Test;
 import static org.junit.Assert.*;
 
 
@@ -134,6 +138,54 @@ public class LinkedListDequeTest {
             assertEquals("Should have the same value", i, (double) lld1.removeLast(), 0.0);
         }
 
+    }
+    @Test
+    public void testForEach() {
 
+        LinkedListDeque<Integer> lld2 = new LinkedListDeque<>();
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        System.out.println(lld2.size());
+
+
+        for(Integer item : lld2) {
+            System.out.print(item.toString() + ' ');
+        }
+    }
+    @Test
+    public void testGet() {
+        LinkedListDeque<Integer> lld2 = new LinkedListDeque<>();
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        for(int i = 0;i < lld2.size();i ++) {
+            System.out.print(i);
+            System.out.println(lld2.get(i));
+        }
+    }
+    @Test
+    public void testEquals() {
+        LinkedListDeque<Integer> lld2 = new LinkedListDeque<>();
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        lld2.addFirst(1);
+        lld2.addLast(2);
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<>();
+        lld1.addFirst(1);
+        lld1.addLast(2);
+        lld1.addFirst(1);
+        lld1.addLast(2);
+        lld1.addFirst(1);
+        lld1.addLast(2);
+        assertTrue(lld1.equals(lld2));
     }
 }
