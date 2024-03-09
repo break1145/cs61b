@@ -3,7 +3,7 @@ package deque;
 import org.junit.Test;
 
 
-import java.util.ArrayList;
+
 import java.util.Iterator;
 
 public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
@@ -155,15 +155,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     public boolean equals(ArrayDeque<T> ad) {
-        ArrayList<T> al1 = new ArrayList<>();
-        ArrayList<T> al2 = new ArrayList<>();
-        for (T item : this) {
-            al1.add(item);
+        boolean equals = true;
+        for(int i = 0;i < ad.size;i ++) {
+            if(ad.get(i) != this.get(i)) {
+                equals = false;
+                break;
+            }
         }
-        for (T item : this) {
-            al2.add(item);
-        }
-        return al1.equals(al2);
+        return equals;
     }
 
     private enum direction {
