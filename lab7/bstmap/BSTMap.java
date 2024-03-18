@@ -3,7 +3,7 @@ package bstmap;
 import java.util.Iterator;
 import java.util.Set;
 
-public class BSTMap<K extends Comparable, V> implements Map61B<K, V>{
+public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
 
     private static class BSTNode<K extends Comparable, V> {
         public K key;
@@ -100,19 +100,13 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V>{
         }
         size = 0;
     }
-    /**
-     * ONLY USED FOR CLEAR
-     * */
-//    private void remove_WithoutRebuild(BSTNode node) {
-//        if (node == null) return;
-//        remove_WithoutRebuild(node.Lchild);
-//        remove_WithoutRebuild(node.Rchild);
-//        node = null;
-//    }
 
 
+    public void printInOrder() {
+        printInOrder(root);
+    }
 
-    public void printInOrder(BSTNode node) {
+    private void printInOrder(BSTNode node) {
         if(node == null) {
             return;
         }
