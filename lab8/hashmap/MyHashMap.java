@@ -115,11 +115,10 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     }
 
     public V get(K key) {
-        int pos = key.hashCode() % maxSize;
+        int pos = ((key.hashCode() % maxSize) + maxSize) % maxSize;
         if(buckets[pos] == null) {
             return null;
         }
-
         for(Node x : buckets[pos]) {
             if (x.key.equals(key)) {
                 return x.value;
@@ -151,6 +150,16 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         if(_buckets[pos] == null) {
             _buckets[pos] = createBucket();
         }
+        if(this.containsKey(node.key)) {
+            Iterator<Node> iterator = _buckets[pos].iterator();
+            while(iterator.hasNext()) {
+                Node x = iterator.next();
+                if (x.key.equals(node.key)) {
+                    iterator.remove(); // 安全地移除元素
+                    this.size -= 1;
+                }
+            }
+        }
 
         _buckets[pos].add(node);
         this.keySet.add(node.key);
@@ -174,11 +183,23 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     public Set<K> keySet() { return this.keySet; }
 
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        int pos = ((key.hashCode() % maxSize) + maxSize) % maxSize;
+        if(this.buckets[pos] == null || !this.containsKey(key)) {
+            return null;
+        }
+        for(Node x: buckets[pos]) {
+            if(x.key.equals(key)) {
+                V val = x.value;
+                buckets[pos].remove(x);
+                this.keySet.remove(key);
+                return val;
+            }
+        }
+        return null;
     }
 
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        return remove(key);
     }
 
 
