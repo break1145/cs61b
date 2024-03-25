@@ -25,6 +25,11 @@ public class TestBSTMap {
         for (int i = 0; i < 455; i++) {
             b.put("hi" + i, 1+i);
             //make sure put is working via containsKey and get
+
+            boolean condition1 = null != b.get("hi" + i);
+            boolean condition2 = (b.get("hi"+i).equals(1+i));
+            boolean condition3 = b.containsKey("hi" + i);
+
             assertTrue( null != b.get("hi" + i) && (b.get("hi"+i).equals(1+i))
                         && b.containsKey("hi" + i));
         }
@@ -85,6 +90,14 @@ public class TestBSTMap {
         BSTMap<String, Integer> b = new BSTMap<String, Integer>();
         b.put("hi", null);
         assertTrue(b.containsKey("hi"));
+    }
+    @Test
+    public void testInsert() {
+        BSTMap<String, Integer> b = new BSTMap<String, Integer>();
+        b.put("hi1", 1);
+        b.put("hi2", 2);
+        b.put("hi10", 3);
+        System.out.print(b.get("hi10"));
     }
 
 }

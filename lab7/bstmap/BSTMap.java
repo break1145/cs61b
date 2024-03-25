@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
 
-    private static class BSTNode<K extends Comparable, V> {
+    private static class BSTNode<K extends Comparable<K>, V> {
         public K key;
         public V value;
         public BSTNode(K k, V v) {
@@ -79,7 +79,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
 
     private BSTNode find(K key, BSTNode node) {
         if (node == null) return null;
-        int res = key.compareTo(node.key);
+        int res = key.compareTo((K) node.key);
         if (res > 0) {
             return find(key, node.Rchild);
         } else if (res < 0) {
