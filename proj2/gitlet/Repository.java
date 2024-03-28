@@ -14,7 +14,7 @@ import static gitlet.Utils.*;
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author break
  */
 public class Repository {
     /**
@@ -87,6 +87,8 @@ public class Repository {
         }
         stagingArea.add(file);
         // TODO: deal with case if 'rm'
+    }
+    public static void commit() {
 
     }
 }
