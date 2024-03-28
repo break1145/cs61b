@@ -1,14 +1,6 @@
 package gitlet;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
@@ -235,5 +227,23 @@ class Utils {
     static void message(String msg, Object... args) {
         System.out.printf(msg, args);
         System.out.println();
+    }
+    public static boolean compareFiles(File file1, File file2) throws IOException {
+        if (file1.length() != file2.length()) {
+            return false;
+        }
+        try (InputStream is1 = new FileInputStream(file1);
+             InputStream is2 = new FileInputStream(file2)) {
+            int byte1;
+            int byte2;
+            do {
+                byte1 = is1.read();
+                byte2 = is2.read();
+                if (byte1 != byte2) {
+                    return false;
+                }
+            } while (byte1 != -1 && byte2 != -1);
+        }
+        return true;
     }
 }
