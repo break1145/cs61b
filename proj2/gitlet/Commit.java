@@ -8,7 +8,7 @@ import java.util.Date; // TODO: You'll likely use this in this class
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author break
  */
 public class Commit {
     /**
@@ -21,6 +21,16 @@ public class Commit {
 
     /** The message of this Commit. */
     private String message;
+    private Date currentDate;
+
+    public Commit(String message) {
+        this.message = message;
+        this.currentDate = new Date();
+    }
 
     /* TODO: fill in the rest of this class. */
+    @Override
+    public String toString() {
+        return this.message + ' ' + this.currentDate.toString();
+    }
 }
