@@ -71,8 +71,13 @@ public class Repository {
         HashSet<String> stagingArea= new HashSet<>();
         writeObject(Staging_Area, stagingArea);
 
-        // TODO: fill in the init command after 'commit' implement
-        // make first commit with no content
+        // make first commit
+        Commit commit = new Commit("initial commit");
+        CommitTree commitTree = new CommitTree();
+        commitTree.add_Commit(commit);
+        commit.saveCommit();
+        writeObject(CommitTree_DIR, commitTree);
+
     }
 
     /** Adds a copy of the file as it currently exists to the staging area.<p>

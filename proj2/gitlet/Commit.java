@@ -53,7 +53,9 @@ public class Commit implements Serializable {
 
     public boolean saveCommit() {
         // save object commit
-        File file = join(Commit_DIR, this.getHashCode());
+        this.hashCode = this.getHashCode();
+        File file = join(Commit_DIR, this.hashCode);
+
         if(file.mkdir()) {
             message("error when save commit: file has already exist");
             return false;
