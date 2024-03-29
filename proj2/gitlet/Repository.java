@@ -72,15 +72,14 @@ public class Repository {
         }
         setupFileFolder();
 
+        // make first commit
         stagingArea= new HashSet<>();
         writeObject(Staging_Area, stagingArea);
-
-        // make first commit
-        Commit commit = new Commit("initial commit");
         commitTree = new CommitTree();
-        commitTree.add_Commit(commit);
-        commit.saveCommit();
         writeObject(CommitTree_DIR, commitTree);
+
+
+        Repository.commit("initial commit");
 
     }
 
