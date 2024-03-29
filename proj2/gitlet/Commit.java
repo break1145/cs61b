@@ -17,28 +17,28 @@ import static gitlet.Utils.*;
 public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
-     *
-     * List all instance variables of the Commit class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided one example for `message`.
      */
 
     /** The message of this Commit. */
     private String message;
     private Date currentDate;
     private String hashCode;
-    public HashSet<File> files;
+    /** A Set to store its files */
+    public HashSet<Blob> files;
+    /** parent commit */
     private Commit parent;
 
     public Commit(String message) {
         this.message = message;
         this.currentDate = new Date();
+        this.hashCode = this.getHashCode();
     }
     public Commit(Commit parent, String message) {
         this.parent = parent;
         this.files = parent.files;
         this.currentDate = new Date();
         this.message = message;
+        this.hashCode = this.getHashCode();
     }
 
 
@@ -53,7 +53,6 @@ public class Commit implements Serializable {
 
     public boolean saveCommit() {
         // save object commit
-        this.hashCode = this.getHashCode();
         File file = join(Commit_DIR, this.hashCode);
 
         if(file.mkdir()) {
@@ -61,20 +60,13 @@ public class Commit implements Serializable {
             return false;
         }
         writeObject(file, this);
-
-        boolean flag = false;
-
-        //save files if not exist before
-        for(File f : this.files) {
-            List<String> ls = new LinkedList<>();
-            ls.add(readContentsAsString(f));
-            String shaCode = sha1(ls);
-            File newDIR = join(Files_DIR, shaCode);
-            if(newDIR.mkdir()) {
+        for(Blob b : this.files) {
+            File file1 = join(Files_DIR, b.getShaCode());
+            if(file1.mkdir()) {
+                // file already exists
                 continue;
             }
-            flag = true;
-            writeContents(newDIR, readContents(f));
+            writeObject(file1, b);
         }
 
         return true;

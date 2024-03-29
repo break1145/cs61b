@@ -46,6 +46,10 @@ public class Repository {
     public static final File CommitTree_DIR = join(Commit_DIR, "commitTree");
     public static final File Files_DIR = join(GITLET_DIR, "blobs");
 
+    /*Staging Area*/
+    public static HashSet<Blob> stagingArea;
+    /*structure for commits*/
+    public static CommitTree commitTree;
 
     /* TODO: fill in the rest of this class. */
 
@@ -68,12 +72,12 @@ public class Repository {
         }
         setupFileFolder();
 
-        HashSet<String> stagingArea= new HashSet<>();
+        stagingArea= new HashSet<>();
         writeObject(Staging_Area, stagingArea);
 
         // make first commit
         Commit commit = new Commit("initial commit");
-        CommitTree commitTree = new CommitTree();
+        commitTree = new CommitTree();
         commitTree.add_Commit(commit);
         commit.saveCommit();
         writeObject(CommitTree_DIR, commitTree);
@@ -89,42 +93,44 @@ public class Repository {
             exit(0);
         }
 
-        HashSet<File> stagingArea = readObject(Staging_Area, HashSet.class);
+        stagingArea = readObject(Staging_Area, HashSet.class);
+        commitTree = readObject(CommitTree_DIR, commitTree.getClass());
         //TODO: check if the file is same as the latest commit's
         // get file from commit
         //File latestFile =
-        try {
-            // deal with if file is same
-            compareFiles(file, file);
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
+        Blob blob = new Blob(file);
+        HashSet<Blob> blobHashSet = commitTree.getHeadCommit().files;
+        if(blobHashSet.contains(blob)) {
+            /*remove if blob in stagingArea is same as latest commit*/
+            stagingArea.remove(blob);
+            exit(0);
         }
+
         // overwrite if exist
-        if(stagingArea.contains(file)) {
-            stagingArea.remove(file);
+        if(stagingArea.contains(blob)) {
+            stagingArea.remove(blob);
         }
-        stagingArea.add(file);
+        stagingArea.add(blob);
+
         writeObject(Staging_Area, stagingArea);
         // TODO: deal with case if 'rm'
     }
     public static void commit(String meassage) {
-        HashSet<File> stagingArea = readObject(Staging_Area, HashSet.class);
-        if (stagingArea.size() == 0) {
+        stagingArea = readObject(Staging_Area, HashSet.class);
+        commitTree = readObject(CommitTree_DIR, CommitTree.class);
+        if (stagingArea.isEmpty()) {
             message("No changes added to the commit.");
             exit(0);
         }
-        CommitTree commitTree = readObject(CommitTree_DIR, CommitTree.class);
+
         Commit latestCommit = commitTree.getHeadCommit();
 
         // get latest commit and initialize new commit with that
         Commit newCommit = new Commit(latestCommit, meassage);
-        try {
-            newCommit.files = updateFile(newCommit, stagingArea);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        newCommit.files = updateFile(newCommit, stagingArea);
         commitTree.add_Commit(newCommit);
+        writeObject(CommitTree_DIR, commitTree);
+
         //save commit
         newCommit.saveCommit();
         stagingArea.clear();
@@ -135,22 +141,27 @@ public class Repository {
     /**
      * @return a HashSet contains files. if file differ from one in stagingArea,use it.Or use the old
      * */
-    public static HashSet updateFile(Commit c, HashSet<File> stagingArea) throws IOException {
-        HashSet<File> result = new HashSet<>();
-        for(File f : c.files) {
-            String name = f.getName();
-            for(File f2 : stagingArea) {
-                if(f2.getName().equals(name)) {
-                    if(!compareFiles(f, f2)) {
-                        result.add(f2);
-                    } else {
-                        result.add(f);
+    public static HashSet<Blob> updateFile(Commit c, HashSet<Blob> stagingArea) {
+        HashSet<Blob> result = new HashSet<>(c.files);
+        for (Blob b2 : stagingArea) {
+            boolean found = false;
+            for (Blob b1 : c.files) {
+                if (b1.getPath().equals(b2.getPath())) {
+                    found = true;
+                    if (!b1.equals(b2)) {
+                        result.remove(b1);
+                        result.add(b2);
                     }
+                    break;
                 }
+            }
+            if (!found) { // new file in stagingArea
+                result.add(b2);
             }
         }
         return result;
     }
+
 }
 
 

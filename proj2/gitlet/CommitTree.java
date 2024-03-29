@@ -18,6 +18,9 @@ public class CommitTree implements Serializable {
     public CommitTree() {
         this.head = null;
     }
+    /**
+     * add commit to the tree. only make change on CommitTree
+     * */
     public boolean add_Commit(Commit commit) {
         CTreeNode newNode = new CTreeNode(commit);
         // empty tree
