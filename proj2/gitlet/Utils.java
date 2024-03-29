@@ -228,6 +228,9 @@ class Utils {
         System.out.printf(msg, args);
         System.out.println();
     }
+    /**
+     * compare two files and return true if files' content is same
+     * */
     public static boolean compareFiles(File file1, File file2) throws IOException {
         if (file1.length() != file2.length()) {
             return false;

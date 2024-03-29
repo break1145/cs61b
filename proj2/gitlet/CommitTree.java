@@ -60,7 +60,9 @@ public class CommitTree implements Serializable {
             printTreeRecursive(child, depth + 1);
         }
     }
-
+    public Commit getHeadCommit() {
+        return this.head.val;
+    }
     public int size(){return this.size;}
 
     /**
