@@ -42,14 +42,10 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File Staging_Area = join(GITLET_DIR, "staging");
+    public static final File Removed_Staging_Area = join(Staging_Area, "removed");
     public static final File Commit_DIR = join(GITLET_DIR, "commits");
     public static final File CommitTree_DIR = join(Commit_DIR, "commitTree");
     public static final File Files_DIR = join(GITLET_DIR, "blobs");
-
-    /*Staging Area*/
-    public static HashSet<Blob> stagingArea;
-    /*structure for commits*/
-    public static CommitTree commitTree;
 
     /* TODO: fill in the rest of this class. */
 
@@ -59,6 +55,7 @@ public class Repository {
         Commit_DIR.mkdir();
         Files_DIR.mkdir();
         CommitTree_DIR.mkdir();
+        Removed_Staging_Area.mkdir();
     }
 
     /**
@@ -73,10 +70,12 @@ public class Repository {
         setupFileFolder();
 
         // make first commit
-        stagingArea= new HashSet<>();
+        HashSet<Blob> stagingArea = new HashSet<>();
         writeObject(Staging_Area, stagingArea);
-        commitTree = new CommitTree();
+        CommitTree commitTree = new CommitTree();
         writeObject(CommitTree_DIR, commitTree);
+        HashSet<Blob> removedStagingArea = new HashSet<>();
+
 
 
         Repository.commit("initial commit");
@@ -92,8 +91,9 @@ public class Repository {
             exit(0);
         }
 
-        stagingArea = readObject(Staging_Area, HashSet.class);
-        commitTree = readObject(CommitTree_DIR, commitTree.getClass());
+        HashSet<Blob> stagingArea = readObject(Staging_Area, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR, CommitTree.class);
+
         //TODO: check if the file is same as the latest commit's
         // get file from commit
         //File latestFile =
@@ -115,18 +115,20 @@ public class Repository {
         // TODO: deal with case if 'rm'
     }
     public static void commit(String meassage) {
-        stagingArea = readObject(Staging_Area, HashSet.class);
-        commitTree = readObject(CommitTree_DIR, CommitTree.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR, CommitTree.class);
         if (stagingArea.isEmpty()) {
             message("No changes added to the commit.");
             exit(0);
         }
+        //TODO: deal with case with 'rm' staging area
 
         Commit latestCommit = commitTree.getHeadCommit();
 
         // get latest commit and initialize new commit with that
         Commit newCommit = new Commit(latestCommit, meassage);
         newCommit.files = updateFile(newCommit, stagingArea);
+
         commitTree.add_Commit(newCommit);
         writeObject(CommitTree_DIR, commitTree);
 
@@ -135,12 +137,20 @@ public class Repository {
         stagingArea.clear();
         writeObject(Staging_Area,stagingArea);
 
-        // TODO: deal with case if 'rm'
+        // remove files from working directory
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area, HashSet.class);
+        for(Blob b : removedStagingArea) {
+            Utils.restrictedDelete(b.getFile());
+        }
+        removedStagingArea.clear();
+        writeObject(Removed_Staging_Area, removedStagingArea);
+
     }
     /**
+     * update files in stagingArea and remove from removeStagingArea
      * @return a HashSet contains files. if file differ from one in stagingArea,use it.Or use the old
      * */
-    public static HashSet<Blob> updateFile(Commit c, HashSet<Blob> stagingArea) {
+    private static HashSet<Blob> updateFile(Commit c, HashSet<Blob> stagingArea) {
         HashSet<Blob> result = new HashSet<>(c.files);
         for (Blob b2 : stagingArea) {
             boolean found = false;
@@ -158,8 +168,38 @@ public class Repository {
                 result.add(b2);
             }
         }
+        // remove files in removedStagingArea
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area, HashSet.class);
+        result = Utils.remove(result, removedStagingArea);
         return result;
     }
+
+    /**
+     * command 'rm'
+     * remove files in staging area and delete files if in current commit<p>
+     * In short, untrack a file
+     * */
+    public static void remove(File file) {
+        Blob blob = new Blob(file);
+        HashSet<Blob> stagingArea = readObject(Staging_Area, HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR, CommitTree.class);
+        Commit latestCommit = commitTree.getHeadCommit();
+
+        if (latestCommit.files.contains(blob)) {
+            removedStagingArea.add(blob);
+        } else if (stagingArea.contains(blob)) {
+            stagingArea.remove(blob);
+        } else {
+            message("No reason to remove the file.");
+            exit(0);
+        }
+        writeObject(Staging_Area, stagingArea);
+        writeObject(Removed_Staging_Area, removedStagingArea);
+    }
+
+
+
 
 }
 

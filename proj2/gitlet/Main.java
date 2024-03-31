@@ -26,14 +26,21 @@ public class Main {
                 initialize();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
                 File file = join(GITLET_DIR, args[1]);
                 add(file);
                 break;
             // TODO: FILL THE REST IN
             case "commit":
-
-
+                if(args.length <= 1) {
+                    message("Please enter a commit message.");
+                }
+                commit(args[1]);
+                break;
+            case "rm":
+                if(args.length <= 1) {
+                    message("Please enter a file path.");
+                }
+                remove(new File(args[1]));
             default:
                 // TODO: Output messages for error commands
 
