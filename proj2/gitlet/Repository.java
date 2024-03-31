@@ -31,6 +31,8 @@ public class Repository {
      *  - CWD
      *      - .gitlet
      *           - staging
+     *              - stagingArea
+     *              - removedStagingArea
      *           - commits
      *              - sha code xxx(commit)
      *              - commitTree
@@ -42,9 +44,12 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File Staging_Area = join(GITLET_DIR, "staging");
-    public static final File Removed_Staging_Area = join(Staging_Area, "removed");
+    public static final File Staging_Area_File = join(Staging_Area, "stagingArea.ser");
+    public static final File Removed_Staging_Area_File = join(Staging_Area, "removed.ser");
+
     public static final File Commit_DIR = join(GITLET_DIR, "commits");
     public static final File CommitTree_DIR = join(Commit_DIR, "commitTree");
+    public static final File CommitTree_DIR_File = join(CommitTree_DIR, "commitTree.ser");
     public static final File Files_DIR = join(GITLET_DIR, "blobs");
 
     /* TODO: fill in the rest of this class. */
@@ -55,7 +60,7 @@ public class Repository {
         Commit_DIR.mkdir();
         Files_DIR.mkdir();
         CommitTree_DIR.mkdir();
-        Removed_Staging_Area.mkdir();
+
     }
 
     /**
@@ -71,11 +76,11 @@ public class Repository {
 
         // make first commit
         HashSet<Blob> stagingArea = new HashSet<>();
-        writeObject(Staging_Area, stagingArea);
+        writeObject(Staging_Area_File, stagingArea);
         CommitTree commitTree = new CommitTree();
-        writeObject(CommitTree_DIR, commitTree);
+        writeObject(CommitTree_DIR_File, commitTree);
         HashSet<Blob> removedStagingArea = new HashSet<>();
-
+        writeObject(Removed_Staging_Area_File, removedStagingArea);
 
 
         Repository.commit("initial commit");
@@ -91,8 +96,8 @@ public class Repository {
             exit(0);
         }
 
-        HashSet<Blob> stagingArea = readObject(Staging_Area, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR, CommitTree.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
 
         //TODO: check if the file is same as the latest commit's
         // get file from commit
@@ -111,17 +116,16 @@ public class Repository {
         }
         stagingArea.add(blob);
 
-        writeObject(Staging_Area, stagingArea);
+        writeObject(Staging_Area_File, stagingArea);
         // TODO: deal with case if 'rm'
     }
     public static void commit(String meassage) {
-        HashSet<Blob> stagingArea = readObject(Staging_Area, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR, CommitTree.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         if (stagingArea.isEmpty()) {
             message("No changes added to the commit.");
             exit(0);
         }
-        //TODO: deal with case with 'rm' staging area
 
         Commit latestCommit = commitTree.getHeadCommit();
 
@@ -130,7 +134,7 @@ public class Repository {
         newCommit.files = updateFile(newCommit, stagingArea);
 
         commitTree.add_Commit(newCommit);
-        writeObject(CommitTree_DIR, commitTree);
+        writeObject(CommitTree_DIR_File, commitTree);
 
         //save commit
         newCommit.saveCommit();
@@ -138,12 +142,12 @@ public class Repository {
         writeObject(Staging_Area,stagingArea);
 
         // remove files from working directory
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area, HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         for(Blob b : removedStagingArea) {
             Utils.restrictedDelete(b.getFile());
         }
         removedStagingArea.clear();
-        writeObject(Removed_Staging_Area, removedStagingArea);
+        writeObject(Removed_Staging_Area_File, removedStagingArea);
 
     }
     /**
@@ -169,7 +173,7 @@ public class Repository {
             }
         }
         // remove files in removedStagingArea
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area, HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         result = Utils.remove(result, removedStagingArea);
         return result;
     }
@@ -181,9 +185,9 @@ public class Repository {
      * */
     public static void remove(File file) {
         Blob blob = new Blob(file);
-        HashSet<Blob> stagingArea = readObject(Staging_Area, HashSet.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR, CommitTree.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         Commit latestCommit = commitTree.getHeadCommit();
 
         if (latestCommit.files.contains(blob)) {
@@ -194,8 +198,8 @@ public class Repository {
             message("No reason to remove the file.");
             exit(0);
         }
-        writeObject(Staging_Area, stagingArea);
-        writeObject(Removed_Staging_Area, removedStagingArea);
+        writeObject(Staging_Area_File, stagingArea);
+        writeObject(Removed_Staging_Area_File, removedStagingArea);
     }
 
 
