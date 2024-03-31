@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Formatter;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -249,4 +250,17 @@ class Utils {
         }
         return true;
     }
+    /**
+     * @return the set difference between two sets
+     * */
+    public static <T> HashSet<T> remove(HashSet<T> A, HashSet<T> B) {
+        HashSet<T> result = new HashSet<>();
+        for(T x : A) {
+            if(!B.contains(x)) {
+                result.add(x);
+            }
+        }
+        return result;
+    }
+
 }
