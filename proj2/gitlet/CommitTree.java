@@ -53,12 +53,12 @@ public class CommitTree implements Serializable {
             return;
         }
         // print node if is not root
-        if(node != root) {
-            for (int i = 0; i < depth; i++) {
-                System.out.print("  ");
-            }
-            System.out.println(node.val);
+
+        for (int i = 0; i < depth; i++) {
+            System.out.print("  ");
         }
+        System.out.println(node.val);
+
         for (CTreeNode child : node.children) {
             printTreeRecursive(child, depth + 1);
         }
@@ -71,7 +71,7 @@ public class CommitTree implements Serializable {
     /**
      * node of commit tree
      * */
-    private class CTreeNode {
+    private static class CTreeNode implements Serializable{
         public Commit val;
         public CTreeNode parent;
         public LinkedList<CTreeNode> children;

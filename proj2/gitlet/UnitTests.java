@@ -28,6 +28,8 @@ public class UnitTests {
     @Test
     public void testInitialize() {
         Repository.initialize();
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        commitTree.printTree();
     }
 
     @org.junit.Test
@@ -40,8 +42,12 @@ public class UnitTests {
         writeObject(Removed_Staging_Area_File, removedStagingArea);
         writeObject(Staging_Area_File, stagingArea);
 
-        commit("initial commit");
+        commitTree.printTree();
 
+//        commit("initial commit");
+        Blob b = new Blob();
+        stagingArea.add(b);
+//        commit("add blob b");
 
 
     }

@@ -19,7 +19,9 @@ public class Blob implements Serializable {
         this.content = readContents(f);
         this.shaCode = sha1(this.path + readContentsAsString(f));
     }
-
+    public Blob() {
+        this.file = null;
+    }
     public String getPath () {
         return path;
     }

@@ -73,11 +73,13 @@ public class Commit implements Serializable {
     }
 
     public String getHashCode() {
-        List<String> ls = new LinkedList<>();
+        List<Object> ls = new LinkedList<>();
         ls.add(this.message);
         ls.add(this.currentDate.toString());
         return sha1(ls);
     }
+
+
     @Override
     public String toString() {
         return this.message + ' ' + this.currentDate.toString();

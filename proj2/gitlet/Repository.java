@@ -74,17 +74,17 @@ public class Repository {
         }
         setupFileFolder();
 
-        // make first commit
+
         HashSet<Blob> stagingArea = new HashSet<>();
-        writeObject(Staging_Area_File, stagingArea);
         CommitTree commitTree = new CommitTree();
-        writeObject(CommitTree_DIR_File, commitTree);
         HashSet<Blob> removedStagingArea = new HashSet<>();
+
+        // make first commit
+        commitTree.add_Commit(new Commit("initial commit"));
+
+        writeObject(Staging_Area_File, stagingArea);
+        writeObject(CommitTree_DIR_File, commitTree);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
-
-
-        Repository.commit("initial commit");
-
     }
 
     /** Adds a copy of the file as it currently exists to the staging area.<p>
@@ -111,9 +111,7 @@ public class Repository {
         }
 
         // overwrite if exist
-        if(stagingArea.contains(blob)) {
-            stagingArea.remove(blob);
-        }
+        stagingArea.remove(blob);
         stagingArea.add(blob);
 
         writeObject(Staging_Area_File, stagingArea);
