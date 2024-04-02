@@ -35,21 +35,26 @@ public class UnitTests {
     @org.junit.Test
     public void testCommit() {
 
-        CommitTree commitTree = new CommitTree();
-        HashSet<Blob> stagingArea = new HashSet<>();
-        HashSet<Blob> removedStagingArea = new HashSet<>();
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+
+
+        commitTree.printTree();
+//        commit("initial commit");
+        Blob b = new Blob(new File("gitlet/test.md"));
+        stagingArea.add(b);
+
         writeObject(CommitTree_DIR_File, commitTree);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
         writeObject(Staging_Area_File, stagingArea);
+        commit("add blob b");
+    }
 
-        commitTree.printTree();
+    @Test
+    public void testLog() {
 
-//        commit("initial commit");
-        Blob b = new Blob();
-        stagingArea.add(b);
-//        commit("add blob b");
-
-
+        Repository.log();
     }
 }
 

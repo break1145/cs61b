@@ -74,7 +74,6 @@ public class Repository {
         }
         setupFileFolder();
 
-
         HashSet<Blob> stagingArea = new HashSet<>();
         CommitTree commitTree = new CommitTree();
         HashSet<Blob> removedStagingArea = new HashSet<>();
@@ -137,7 +136,7 @@ public class Repository {
         //save commit
         newCommit.saveCommit();
         stagingArea.clear();
-        writeObject(Staging_Area,stagingArea);
+        writeObject(Staging_Area_File,stagingArea);
 
         // remove files from working directory
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
@@ -153,26 +152,31 @@ public class Repository {
      * @return a HashSet contains files. if file differ from one in stagingArea,use it.Or use the old
      * */
     private static HashSet<Blob> updateFile(Commit c, HashSet<Blob> stagingArea) {
-        HashSet<Blob> result = new HashSet<>(c.files);
-        for (Blob b2 : stagingArea) {
-            boolean found = false;
-            for (Blob b1 : c.files) {
-                if (b1.getPath().equals(b2.getPath())) {
-                    found = true;
-                    if (!b1.equals(b2)) {
-                        result.remove(b1);
-                        result.add(b2);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        HashSet<Blob> result;
+        if (c.files != null) {
+            result = new HashSet<>(c.files);
+            for (Blob b2 : stagingArea) {
+                boolean found = false;
+                for (Blob b1 : c.files) {
+                    if (b1.getPath().equals(b2.getPath())) {
+                        found = true;
+                        if (!b1.equals(b2)) {
+                            result.remove(b1);
+                            result.add(b2);
+                        }
+                        break;
                     }
-                    break;
+                }
+                if (!found) { // new file in stagingArea
+                    result.add(b2);
                 }
             }
-            if (!found) { // new file in stagingArea
-                result.add(b2);
-            }
+            result = Utils.remove(result, removedStagingArea);
+        } else {
+            result = new HashSet<>(stagingArea);
+            result = Utils.remove(result, removedStagingArea);
         }
-        // remove files in removedStagingArea
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        result = Utils.remove(result, removedStagingArea);
         return result;
     }
 
@@ -200,7 +204,10 @@ public class Repository {
         writeObject(Removed_Staging_Area_File, removedStagingArea);
     }
 
-
+    public static void log() {
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        commitTree.printTreefromHead();
+    }
 
 
 }

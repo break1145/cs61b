@@ -41,6 +41,10 @@ public class Main {
                     message("Please enter a file path.");
                 }
                 remove(new File(args[1]));
+                break;
+            case "log":
+                Repository.log();
+                break;
             default:
                 // TODO: Output messages for error commands
 

@@ -55,10 +55,10 @@ public class Commit implements Serializable {
         // save object commit
         File file = join(Commit_DIR, this.hashCode);
 
-        if(file.mkdir()) {
-            message("error when save commit: file has already exist");
-            return false;
-        }
+//        if(file.mkdir()) {
+//            message("error when save commit: file has already exist");
+//            return false;
+//        }
         writeObject(file, this);
         for(Blob b : this.files) {
             File file1 = join(Files_DIR, b.getShaCode());
@@ -78,7 +78,16 @@ public class Commit implements Serializable {
         ls.add(this.currentDate.toString());
         return sha1(ls);
     }
+    public String hashcode() {
+        return this.hashCode;
+    }
+    public Date getCurrentDate() {
+        return this.currentDate;
+    }
 
+    public String getMessage () {
+        return message;
+    }
 
     @Override
     public String toString() {

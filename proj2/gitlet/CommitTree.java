@@ -63,6 +63,20 @@ public class CommitTree implements Serializable {
             printTreeRecursive(child, depth + 1);
         }
     }
+    public void printTreefromHead() {
+        CTreeNode node = this.head;
+        while(node != null) {
+            Utils.message("===");
+            Utils.message("commit ", node.val.hashcode());
+            Utils.message("Date ", node.val.getCurrentDate().toString());
+            Utils.message(node.val.getMessage());
+            Utils.message("");
+
+            node = node.parent;
+
+        }
+    }
+
     public Commit getHeadCommit() {
         return this.head.val;
     }
