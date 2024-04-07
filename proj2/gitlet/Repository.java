@@ -18,15 +18,6 @@ import static java.lang.System.exit;
  *  @author break
  */
 public class Repository {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Repository class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided two examples for you.
-     */
-
-    /** The current working directory. */
     /** File structure
      *  - CWD
      *      - .gitlet
@@ -36,21 +27,30 @@ public class Repository {
      *           - commits
      *              - sha code xxx(commit)
      *              - commitTree
+     *
      *           - blobs
      *              - sha1 code xxx(files)
      *
      * */
+    /**
+     * TODO: add instance variables here.
+     *
+     * List all instance variables of the Repository class here with a useful
+     * comment above them describing what that variable represents and how that
+     * variable is used. We've provided two examples for you.
+     */
+    /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File Staging_Area = join(GITLET_DIR, "staging");
     public static final File Staging_Area_File = join(Staging_Area, "stagingArea.ser");
     public static final File Removed_Staging_Area_File = join(Staging_Area, "removed.ser");
-
     public static final File Commit_DIR = join(GITLET_DIR, "commits");
     public static final File CommitTree_DIR = join(Commit_DIR, "commitTree");
     public static final File CommitTree_DIR_File = join(CommitTree_DIR, "commitTree.ser");
     public static final File Files_DIR = join(GITLET_DIR, "blobs");
+
 
     /* TODO: fill in the rest of this class. */
 
@@ -77,6 +77,7 @@ public class Repository {
         HashSet<Blob> stagingArea = new HashSet<>();
         CommitTree commitTree = new CommitTree();
         HashSet<Blob> removedStagingArea = new HashSet<>();
+        HashSet<File> trackedFiles = new HashSet<>();
 
         // make first commit
         commitTree.add_Commit(new Commit("initial commit"));
@@ -84,6 +85,7 @@ public class Repository {
         writeObject(Staging_Area_File, stagingArea);
         writeObject(CommitTree_DIR_File, commitTree);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
+
     }
 
     /** Adds a copy of the file as it currently exists to the staging area.<p>
@@ -112,32 +114,32 @@ public class Repository {
         // overwrite if exist
         stagingArea.remove(blob);
         stagingArea.add(blob);
-
         writeObject(Staging_Area_File, stagingArea);
         // TODO: deal with case if 'rm'
     }
-    public static void commit(String meassage) {
+    public static void commit(String message) {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        // TODO: file changes should be considered
+        // check if file is different from last commit
+
+
         if (stagingArea.isEmpty()) {
             message("No changes added to the commit.");
             exit(0);
         }
 
         Commit latestCommit = commitTree.getHeadCommit();
-
         // get latest commit and initialize new commit with that
-        Commit newCommit = new Commit(latestCommit, meassage);
-        newCommit.files = updateFile(newCommit, stagingArea);
+        Commit newCommit = new Commit(latestCommit, message);
 
+        newCommit.files = updateFile(newCommit);
         commitTree.add_Commit(newCommit);
         writeObject(CommitTree_DIR_File, commitTree);
-
         //save commit
         newCommit.saveCommit();
         stagingArea.clear();
         writeObject(Staging_Area_File,stagingArea);
-
         // remove files from working directory
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         for(Blob b : removedStagingArea) {
@@ -151,9 +153,16 @@ public class Repository {
      * update files in stagingArea and remove from removeStagingArea
      * @return a HashSet contains files. if file differ from one in stagingArea,use it.Or use the old
      * */
-    private static HashSet<Blob> updateFile(Commit c, HashSet<Blob> stagingArea) {
+    private static HashSet<Blob> updateFile(Commit c) {
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         HashSet<Blob> result;
+        // compare with latest commit
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        Commit latestCommit = commitTree.getHeadCommit();
+
+
+        // update files in stagingArea
         if (c.files != null) {
             result = new HashSet<>(c.files);
             for (Blob b2 : stagingArea) {
@@ -172,13 +181,14 @@ public class Repository {
                     result.add(b2);
                 }
             }
+            // remove files in removeStagingArea
             result = Utils.remove(result, removedStagingArea);
         } else {
-            result = new HashSet<>(stagingArea);
-            result = Utils.remove(result, removedStagingArea);
+            result = Utils.remove(new HashSet<>(stagingArea), removedStagingArea);
         }
         return result;
     }
+
 
     /**
      * command 'rm'
@@ -200,6 +210,8 @@ public class Repository {
             message("No reason to remove the file.");
             exit(0);
         }
+
+
         writeObject(Staging_Area_File, stagingArea);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
     }
