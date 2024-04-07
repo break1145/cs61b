@@ -33,6 +33,7 @@ public class Commit implements Serializable {
         this.message = message;
         this.currentDate = new Date();
         this.hashCode = this.getHashCode();
+        this.filesCode = new HashSet<>();
     }
     public Commit(Commit parent, String message) {
         this.parent = parent;
@@ -56,6 +57,7 @@ public class Commit implements Serializable {
     public boolean saveCommit() {
         // save object commit
         File file = join(Commit_DIR, this.hashCode);
+        Boolean isSaved = false;
 
 //        if(file.mkdir()) {
 //            message("error when save commit: file has already exist");
@@ -66,16 +68,16 @@ public class Commit implements Serializable {
             File file1 = join(Files_DIR, b.getShaCode());
             if(file1.isDirectory()) {
                 // file already exists
+                isSaved = true;
                 continue;
             }
             file1.mkdir();
             file1 = join(file1, b.getFile().getName());
-            writeObject(file1, b);
+            writeObject(file1, b.getFile());
             this.filesCode.add(b.getShaCode());
 
         }
-
-        return true;
+        return isSaved;
     }
 
     public String getHashCode() {

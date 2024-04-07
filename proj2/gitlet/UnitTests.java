@@ -54,16 +54,20 @@ public class UnitTests {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        System.out.println(stagingArea.size());
+        Blob b = new Blob(new File("gitlet/test.md"));
+        stagingArea.add(b);
         Repository.log();
 
-        commit("add blob b");
+        commit("change blob b");
 
     }
 
     @Test
     public void testLog() {
-
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         Repository.log();
+        commitTree.printTree();
     }
 }
 

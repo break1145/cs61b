@@ -120,34 +120,32 @@ public class Repository {
     public static void commit(String message) {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        // TODO: file changes should be considered
-        // check if file is different from last commit
-
-
-        if (stagingArea.isEmpty()) {
-            message("No changes added to the commit.");
-            exit(0);
-        }
 
         Commit latestCommit = commitTree.getHeadCommit();
         // get latest commit and initialize new commit with that
         Commit newCommit = new Commit(latestCommit, message);
-
         newCommit.files = updateFile(newCommit);
-        commitTree.add_Commit(newCommit);
-        writeObject(CommitTree_DIR_File, commitTree);
         //save commit
-        newCommit.saveCommit();
-        stagingArea.clear();
-        writeObject(Staging_Area_File,stagingArea);
+        Boolean saved = newCommit.saveCommit();
+
+
         // remove files from working directory
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         for(Blob b : removedStagingArea) {
-            Utils.restrictedDelete(b.getFile());
+            restrictedDelete(b.getFile());
         }
         removedStagingArea.clear();
         writeObject(Removed_Staging_Area_File, removedStagingArea);
 
+        if(saved) {
+            // no file changed
+            message("No changes added to the commit.");
+            exit(0);
+        }
+        commitTree.add_Commit(newCommit);
+        writeObject(CommitTree_DIR_File, commitTree);
+        stagingArea.clear();
+        writeObject(Staging_Area_File,stagingArea);
     }
     /**
      * update files in stagingArea and remove from removeStagingArea
@@ -161,8 +159,6 @@ public class Repository {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         Commit latestCommit = commitTree.getHeadCommit();
 
-
-        // update files in stagingArea
         if (c.files != null) {
             result = new HashSet<>(c.files);
             for (Blob b2 : stagingArea) {
@@ -186,6 +182,10 @@ public class Repository {
         } else {
             result = Utils.remove(new HashSet<>(stagingArea), removedStagingArea);
         }
+        //TODO 遍历result 和latest commit 比较File内容 有变化就取新的
+//        for (Blob b : result) {
+//
+//        }
         return result;
     }
 
@@ -219,6 +219,14 @@ public class Repository {
     public static void log() {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         commitTree.printTreefromHead();
+    }
+
+    /**
+     * when program start,check files and add to staging area if changed
+     *
+     * */
+    public static void startCheck() {
+
     }
 
 

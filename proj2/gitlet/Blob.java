@@ -39,7 +39,7 @@ public class Blob implements Serializable {
     }
 
     public boolean equals(Object obj) {
-        // check if ref to same one
+        // if ref to same one
         if (this == obj) {
             return true;
         }
@@ -48,7 +48,7 @@ public class Blob implements Serializable {
             return false;
         }
         Blob other = (Blob) obj;
-        // 比较 SHA-1 哈希码
+        // compare SHA-1
         return this.shaCode.equals(other.shaCode);
     }
 
