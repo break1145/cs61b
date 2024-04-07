@@ -25,6 +25,7 @@ public class Commit implements Serializable {
     private String hashCode;
     /** A Set to store its files */
     public HashSet<Blob> files;
+    public HashSet<String> filesCode;
     /** parent commit */
     private Commit parent;
 
@@ -36,6 +37,7 @@ public class Commit implements Serializable {
     public Commit(Commit parent, String message) {
         this.parent = parent;
         this.files = parent.files;
+        this.filesCode = parent.filesCode;
         this.currentDate = new Date();
         this.message = message;
         this.hashCode = this.getHashCode();
@@ -62,11 +64,15 @@ public class Commit implements Serializable {
         writeObject(file, this);
         for(Blob b : this.files) {
             File file1 = join(Files_DIR, b.getShaCode());
-            if(file1.mkdir()) {
+            if(file1.isDirectory()) {
                 // file already exists
                 continue;
             }
+            file1.mkdir();
+            file1 = join(file1, b.getFile().getName());
             writeObject(file1, b);
+            this.filesCode.add(b.getShaCode());
+
         }
 
         return true;

@@ -254,12 +254,8 @@ class Utils {
      * @return the set difference between two sets
      * */
     public static <T> HashSet<T> remove(HashSet<T> A, HashSet<T> B) {
-        HashSet<T> result = new HashSet<>();
-        for(T x : A) {
-            if(!B.contains(x)) {
-                result.add(x);
-            }
-        }
+        HashSet<T> result = new HashSet<>(A);
+        result.removeAll(B);
         return result;
     }
 

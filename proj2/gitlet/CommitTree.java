@@ -67,13 +67,12 @@ public class CommitTree implements Serializable {
         CTreeNode node = this.head;
         while(node != null) {
             Utils.message("===");
-            Utils.message("commit ", node.val.hashcode());
-            Utils.message("Date ", node.val.getCurrentDate().toString());
+            Utils.message("commit "+ node.val.hashcode());
+            Utils.message("Date "+ node.val.getCurrentDate().toString());
             Utils.message(node.val.getMessage());
             Utils.message("");
 
             node = node.parent;
-
         }
     }
 
