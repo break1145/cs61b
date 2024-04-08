@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import static gitlet.Utils.*;
@@ -51,6 +52,8 @@ public class Repository {
     public static final File CommitTree_DIR_File = join(CommitTree_DIR, "commitTree.ser");
     public static final File Files_DIR = join(GITLET_DIR, "blobs");
 
+//    public static final File Tracked_DIR = join(Staging_Area, "tracked");
+//    public static final File Tracked_DIR_File = join(Tracked_DIR, "tracked.ser");
 
     /* TODO: fill in the rest of this class. */
 
@@ -60,7 +63,6 @@ public class Repository {
         Commit_DIR.mkdir();
         Files_DIR.mkdir();
         CommitTree_DIR.mkdir();
-
     }
 
     /**
@@ -77,7 +79,6 @@ public class Repository {
         HashSet<Blob> stagingArea = new HashSet<>();
         CommitTree commitTree = new CommitTree();
         HashSet<Blob> removedStagingArea = new HashSet<>();
-        HashSet<File> trackedFiles = new HashSet<>();
 
         // make first commit
         commitTree.add_Commit(new Commit("initial commit"));
@@ -99,49 +100,51 @@ public class Repository {
 
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-
-        //TODO: check if the file is same as the latest commit's
-        // get file from commit
-        //File latestFile =
+        // 获取HEAD的Commit
         Blob blob = new Blob(file);
-        HashSet<Blob> blobHashSet = commitTree.getHeadCommit().files;
-        if(blobHashSet.contains(blob)) {
+        HashSet<String> filesCodehashSet = commitTree.getHeadCommit().filesCode;
+        if(filesCodehashSet.contains(blob.getShaCode())) {
             /*remove if blob in stagingArea is same as latest commit*/
             stagingArea.remove(blob);
             exit(0);
         }
 
-        // overwrite if exist
-        stagingArea.remove(blob);
+        // 如果缓存区内存在同名文件 重写
+        for(Blob blob2 : stagingArea) {
+            if(blob2.getFile().equals(blob.getFile())) {
+                stagingArea.remove(blob2);
+                break;
+            }
+        }
         stagingArea.add(blob);
+
         writeObject(Staging_Area_File, stagingArea);
-        // TODO: deal with case if 'rm'
     }
     public static void commit(String message) {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
 
+        if(stagingArea.size() == 0 && removedStagingArea.size() == 0) {
+            // no file changed
+            message("No changes added to the commit.");
+            exit(0);
+        }
         Commit latestCommit = commitTree.getHeadCommit();
-        // get latest commit and initialize new commit with that
         Commit newCommit = new Commit(latestCommit, message);
-        newCommit.files = updateFile(newCommit);
-        //save commit
-        Boolean saved = newCommit.saveCommit();
 
+        // 更新并保存commit
+        newCommit = updateFile(newCommit);
+        newCommit.save();
 
         // remove files from working directory
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         for(Blob b : removedStagingArea) {
             restrictedDelete(b.getFile());
         }
         removedStagingArea.clear();
         writeObject(Removed_Staging_Area_File, removedStagingArea);
 
-        if(saved) {
-            // no file changed
-            message("No changes added to the commit.");
-            exit(0);
-        }
+
         commitTree.add_Commit(newCommit);
         writeObject(CommitTree_DIR_File, commitTree);
         stagingArea.clear();
@@ -151,43 +154,45 @@ public class Repository {
      * update files in stagingArea and remove from removeStagingArea
      * @return a HashSet contains files. if file differ from one in stagingArea,use it.Or use the old
      * */
-    private static HashSet<Blob> updateFile(Commit c) {
+    private static Commit updateFile(Commit commit) {
+        // 根据暂存区更新 commit
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        HashSet<Blob> result;
-        // compare with latest commit
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        Commit latestCommit = commitTree.getHeadCommit();
 
-        if (c.files != null) {
-            result = new HashSet<>(c.files);
-            for (Blob b2 : stagingArea) {
-                boolean found = false;
-                for (Blob b1 : c.files) {
-                    if (b1.getPath().equals(b2.getPath())) {
-                        found = true;
-                        if (!b1.equals(b2)) {
-                            result.remove(b1);
-                            result.add(b2);
-                        }
-                        break;
-                    }
-                }
-                if (!found) { // new file in stagingArea
-                    result.add(b2);
+        Commit updatedCommit = new Commit(commit);
+        HashSet<Blob> updatedFiles;
+        if(updatedCommit.files == null) {
+            updatedFiles = new HashSet<>();
+        } else {
+            updatedFiles = new HashSet<>(updatedCommit.files);
+        }
+
+        // 添加暂存区中的文件到更新后的文件列表
+        updatedFiles.addAll(stagingArea);
+        updatedFiles.removeAll(removedStagingArea);
+
+        // 使用迭代器遍历文件列表进行移除操作
+        Iterator<Blob> iterator = updatedFiles.iterator();
+        while (iterator.hasNext()) {
+            Blob commitFile = iterator.next();
+            for (Blob stagingFile : stagingArea) {
+                if (stagingFile.getPath().equals(commitFile.getPath())) {
+                    iterator.remove();
+                    break;
                 }
             }
-            // remove files in removeStagingArea
-            result = Utils.remove(result, removedStagingArea);
-        } else {
-            result = Utils.remove(new HashSet<>(stagingArea), removedStagingArea);
         }
-        //TODO 遍历result 和latest commit 比较File内容 有变化就取新的
-//        for (Blob b : result) {
-//
-//        }
-        return result;
+
+        // 更新文件列表和文件 SHA-1 校验码
+        updatedCommit.files = updatedFiles;
+        updatedCommit.filesCode.clear();
+        for (Blob file : updatedFiles) {
+            updatedCommit.filesCode.add(file.getShaCode());
+        }
+
+        return updatedCommit;
     }
+
 
 
     /**
