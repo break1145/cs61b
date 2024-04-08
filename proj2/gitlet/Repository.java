@@ -168,17 +168,25 @@ public class Repository {
         }
 
         // 添加暂存区中的文件到更新后的文件列表
-        updatedFiles.addAll(stagingArea);
-        updatedFiles.removeAll(removedStagingArea);
-
-        // 使用迭代器遍历文件列表进行移除操作
-        Iterator<Blob> iterator = updatedFiles.iterator();
-        while (iterator.hasNext()) {
-            Blob commitFile = iterator.next();
-            for (Blob stagingFile : stagingArea) {
-                if (stagingFile.getPath().equals(commitFile.getPath())) {
-                    iterator.remove();
-                    break;
+        for(Blob b : stagingArea) {
+            boolean found = false;
+            for(Blob b2 : updatedFiles) {
+                if(b.getPath().equals(b2.getPath())) {
+                    updatedFiles.remove(b2);
+                    updatedFiles.add(b);
+                    found = true;
+                }
+            }
+            if(!found) {
+                updatedFiles.add(b);
+            }
+        }
+        // 将删除区的文件从commit中删除
+        for(Blob b : removedStagingArea) {
+            for(Blob b2 : updatedFiles) {
+                if(b.getPath().equals(b2.getPath())) {
+                    updatedFiles.remove(b2);
+                    //TODO: 从工作区删除对应文件
                 }
             }
         }

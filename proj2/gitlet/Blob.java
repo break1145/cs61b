@@ -41,11 +41,11 @@ public class Blob implements Serializable {
 
     public void save() {
         File blobFile = join(Files_DIR, this.shaCode);
-        if (!blobFile.exists()) {
-            writeObject(blobFile, this);
-        }
+        writeObject(blobFile, this);
+
     }
 
+    @Override
     public boolean equals(Object obj) {
         // if ref to same one
         if (this == obj) {

@@ -65,9 +65,9 @@ public class UnitTests {
 
     @Test
     public void testLog() {
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+//        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         Repository.log();
-        commitTree.printTree();
+//        commitTree.printTree();
     }
 }
 
