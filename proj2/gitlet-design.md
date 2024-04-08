@@ -48,9 +48,15 @@ public String getPath ();
 public String getShaCode ();
 public void save();
 public boolean equals();
-    
-
 ````
+3. `Staging_Area`
+```java
+HashSet<Blob> stagingArea = new HashSet<>();
+HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+```
+暂存区。当调用`add(File f)`或`add(Blob b)`时向其中添加。
+程序启动时，尝试对所有已追踪的文件调用`add()`，以达到检测文件更新的目的。也就是说，当调用`commit()`时，暂存区内会包含`add()`的文件和有更改的文件  
+[已追踪] `当前HEAD指向的Commit包含的文件`∪`暂存区内文件`
 ***
 
 ## 命令设计
