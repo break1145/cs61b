@@ -27,7 +27,7 @@ public class Commit implements Serializable {
     public HashSet<Blob> files;
     public HashSet<String> filesCode;
     /** parent commit */
-    private Commit parent;
+    private List<String> parentCodes;
 
     public Commit(String message) {
         this.message = message;
@@ -36,12 +36,22 @@ public class Commit implements Serializable {
         this.filesCode = new HashSet<>();
     }
     public Commit(Commit parent, String message) {
-        this.parent = parent;
+        this.parentCodes = new ArrayList<>(Collections.singletonList(parent.hashCode));
         this.files = parent.files;
         this.filesCode = parent.filesCode;
+
         this.currentDate = new Date();
         this.message = message;
         this.hashCode = this.getHashCode();
+    }
+    public Commit(Commit c) {
+        this.message = c.message;
+        this.currentDate = c.currentDate;
+        this.hashCode = c.hashCode;
+        this.files = c.files;
+        this.filesCode = c.filesCode;
+        this.parentCodes = c.parentCodes;
+
     }
 
 
@@ -54,30 +64,12 @@ public class Commit implements Serializable {
      *
      * */
 
-    public boolean saveCommit() {
-        // save object commit
+    public void save() {
         File file = join(Commit_DIR, this.hashCode);
-        Boolean isSaved = false;
-
-//        if(file.mkdir()) {
-//            message("error when save commit: file has already exist");
-//            return false;
-//        }
         writeObject(file, this);
         for(Blob b : this.files) {
-            File file1 = join(Files_DIR, b.getShaCode());
-            if(file1.isDirectory()) {
-                // file already exists
-                isSaved = true;
-                continue;
-            }
-            file1.mkdir();
-            file1 = join(file1, b.getFile().getName());
-            writeObject(file1, b.getFile());
-            this.filesCode.add(b.getShaCode());
-
+            b.save();
         }
-        return isSaved;
     }
 
     public String getHashCode() {
