@@ -125,7 +125,7 @@ public class Repository {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
 
-        if(stagingArea.size() == 0 && removedStagingArea.size() == 0) {
+        if(stagingArea.isEmpty() && removedStagingArea.isEmpty()) {
             // no file changed
             message("No changes added to the commit.");
             exit(0);
@@ -137,18 +137,13 @@ public class Repository {
         newCommit = updateFile(newCommit);
         newCommit.save();
 
-        // remove files from working directory
-        for(Blob b : removedStagingArea) {
-            restrictedDelete(b.getFile());
-        }
-        removedStagingArea.clear();
-        writeObject(Removed_Staging_Area_File, removedStagingArea);
-
-
+        //TODO: 从工作区删除对应文件
         commitTree.add_Commit(newCommit);
         writeObject(CommitTree_DIR_File, commitTree);
         stagingArea.clear();
         writeObject(Staging_Area_File,stagingArea);
+        removedStagingArea.clear();
+        writeObject(Removed_Staging_Area_File, removedStagingArea);
     }
     /**
      * update files in stagingArea and remove from removeStagingArea
@@ -166,7 +161,6 @@ public class Repository {
         } else {
             updatedFiles = new HashSet<>(updatedCommit.files);
         }
-
         // 添加暂存区中的文件到更新后的文件列表
         for(Blob b : stagingArea) {
             boolean found = false;
@@ -186,18 +180,16 @@ public class Repository {
             for(Blob b2 : updatedFiles) {
                 if(b.getPath().equals(b2.getPath())) {
                     updatedFiles.remove(b2);
-                    //TODO: 从工作区删除对应文件
+
                 }
             }
         }
-
         // 更新文件列表和文件 SHA-1 校验码
         updatedCommit.files = updatedFiles;
         updatedCommit.filesCode.clear();
         for (Blob file : updatedFiles) {
             updatedCommit.filesCode.add(file.getShaCode());
         }
-
         return updatedCommit;
     }
 
