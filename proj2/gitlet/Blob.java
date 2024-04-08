@@ -5,6 +5,7 @@ import net.sf.saxon.trans.SymbolicName;
 import java.io.File;
 import java.io.Serializable;
 
+import static gitlet.Repository.Files_DIR;
 import static gitlet.Utils.*;
 public class Blob implements Serializable {
     private String path;
@@ -36,6 +37,13 @@ public class Blob implements Serializable {
 
     public File getFile () {
         return file;
+    }
+
+    public void save() {
+        File blobFile = join(Files_DIR, this.shaCode);
+        if (!blobFile.exists()) {
+            writeObject(blobFile, this);
+        }
     }
 
     public boolean equals(Object obj) {
