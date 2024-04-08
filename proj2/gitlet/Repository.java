@@ -97,29 +97,51 @@ public class Repository {
             System.out.println("File does not exist.");
             exit(0);
         }
-
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         // 获取HEAD的Commit
         Blob blob = new Blob(file);
+        add(blob);
+    }
+    /**
+     * 将blob加入暂存区，并检查是否有改动。
+     * @param blob 一个Blob对象
+     *
+     * */
+    private static void add(Blob blob) {
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+
         HashSet<String> filesCodehashSet = commitTree.getHeadCommit().filesCode;
         if(filesCodehashSet.contains(blob.getShaCode())) {
-            /*remove if blob in stagingArea is same as latest commit*/
             stagingArea.remove(blob);
-            exit(0);
+            return;
         }
 
-        // 如果缓存区内存在同名文件 重写
+        // 如果暂存区内存在同名文件 将该文件替换为blob
         for(Blob blob2 : stagingArea) {
             if(blob2.getFile().equals(blob.getFile())) {
                 stagingArea.remove(blob2);
                 break;
             }
         }
-        stagingArea.add(blob);
 
+        stagingArea.add(blob);
         writeObject(Staging_Area_File, stagingArea);
     }
+
+    /**
+     * 程序启动时 对HEAD Commit的所有文件调用add(Blob b) 将更改加入暂存区
+     * */
+    public static void startCheck() {
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        HashSet<Blob> blobs = commitTree.getHeadCommit().files;
+        for(Blob blob : blobs) {
+            // 根据HEAD Commit的File路径在工作区内读取文件
+            Blob newBlob = new Blob(blob.getFile());
+            add(newBlob);
+        }
+    }
+
     public static void commit(String message) {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
@@ -226,13 +248,7 @@ public class Repository {
         commitTree.printTreefromHead();
     }
 
-    /**
-     * when program start,check files and add to staging area if changed
-     *
-     * */
-    public static void startCheck() {
 
-    }
 
 
 }

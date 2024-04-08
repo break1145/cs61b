@@ -51,7 +51,12 @@ public class Commit implements Serializable {
         this.files = c.files;
         this.filesCode = c.filesCode;
         this.parentCodes = c.parentCodes;
-
+    }
+    /**
+     * @return 返回当前分支的父提交
+     * */
+    public Commit getParentCommit() {
+        return readObject(join(Commit_DIR, this.parentCodes.get(0)), Commit.class);
     }
 
 

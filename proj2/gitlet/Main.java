@@ -15,6 +15,9 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
+
+        Repository.startCheck();
+
         if (args.length == 0) {
             // TODO: what if args is empty?
             System.out.println("Please enter a command.");
