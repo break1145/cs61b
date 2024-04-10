@@ -70,8 +70,14 @@ HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
 创建`newCommit`，更新`parent`,`message`.初始`blobs`为`parent`的`blobs`.根据`stagingArea`和`removedStagingArea`更新blobs,并重新构造`filesCode`  
 保存commit：保存`newCommit`中所有文件，保存该`commit`，向`commitTree`加入该`commit` ，更新`HEAD`，清空缓存区  
    - 失败情况：缓存区为空 或 message为空
-4. rm
-
+4. rm<p> `rm [file]`</p>
+检查file，如果
+   - 在`StagingArea`<p>
+        从暂存区删除，取消跟踪
+   - 在`HEAD Commit`<p>
+        加入`removedStagingArea`标记为待删除。下次提交时候从工作区删除
+   - 不在`StagingArea`，不在`HEAD Commit`<p>
+        输出 No reason to remove the file.
 5. log
 
 6. global-log
