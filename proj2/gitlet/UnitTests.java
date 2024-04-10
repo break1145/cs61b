@@ -34,12 +34,9 @@ public class UnitTests {
 
     @org.junit.Test
     public void testCommit() {
-
-        // Repository.initialize();
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        commitTree.printTree();
 
         Blob b = new Blob(new File("gitlet/test.md"));
         stagingArea.add(b);
@@ -63,28 +60,33 @@ public class UnitTests {
     @Test
     public void testLog() {
         Repository.log();
+        System.out.println("~~~~~~~~");
+        Repository.global_log();
     }
 
     @Test
     public void testReadFile() {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         Commit head = commitTree.getHeadCommit();
-        HashSet<String> code = head.getParentCommit().filesCode;
+        HashSet<String> code = head.filesCode;
+
+        System.out.println(head.filesCode);
+
 //        HashSet<String> code = head.filesCode;
 
         for(String s : code) {
             Blob b = readObject(join(Files_DIR, s), Blob.class);
             writeContents(join(CWD, "testReadFile.md"), b.getContent());
         }
-
     }
+
 }
 
 
 
 
 
-
+//
 
 
 

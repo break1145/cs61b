@@ -250,13 +250,6 @@ class Utils {
         }
         return true;
     }
-    /**
-     * @return the set difference between two sets
-     * */
-    public static <T> HashSet<T> remove(HashSet<T> A, HashSet<T> B) {
-        HashSet<T> result = new HashSet<>(A);
-        result.removeAll(B);
-        return result;
-    }
+
 
 }

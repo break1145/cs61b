@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import static gitlet.Utils.*;
@@ -81,7 +82,9 @@ public class Repository {
         HashSet<Blob> removedStagingArea = new HashSet<>();
 
         // make first commit
-        commitTree.add_Commit(new Commit("initial commit"));
+        Commit commit = new Commit("initial commit");
+        commitTree.add_Commit(commit);
+        commit.save();
 
         writeObject(Staging_Area_File, stagingArea);
         writeObject(CommitTree_DIR_File, commitTree);
@@ -223,21 +226,22 @@ public class Repository {
      * In short, untrack a file
      * */
     public static void remove(File file) {
-        Blob blob = new Blob(file);
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        Commit latestCommit = commitTree.getHeadCommit();
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        Commit headCommit = commitTree.getHeadCommit();
 
-        if (latestCommit.files.contains(blob)) {
-            removedStagingArea.add(blob);
-        } else if (stagingArea.contains(blob)) {
-            stagingArea.remove(blob);
-        } else {
+        Blob blob = new Blob(file);
+        if(!stagingArea.contains(blob) && !removedStagingArea.contains(blob)) {
             message("No reason to remove the file.");
             exit(0);
         }
-
+        if(stagingArea.contains(blob)) {
+            stagingArea.remove(blob);
+        }
+        if(headCommit.files.contains(blob)) {
+            removedStagingArea.add(blob);
+        }
 
         writeObject(Staging_Area_File, stagingArea);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
@@ -246,6 +250,18 @@ public class Repository {
     public static void log() {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         commitTree.printTreefromHead();
+    }
+    public static void global_log() {
+        List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
+        for(String commitID : commitList) {
+            Commit currentCommit = readObject(join(Commit_DIR, commitID), Commit.class);
+            System.out.println("===");
+            System.out.println("Commit " + currentCommit.getHashCode());
+            System.out.println("Date " + currentCommit.getCurrentDate());
+            System.out.println(currentCommit.getMessage());
+            System.out.println();
+        }
+
     }
 
 

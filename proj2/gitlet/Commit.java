@@ -72,8 +72,10 @@ public class Commit implements Serializable {
     public void save() {
         File file = join(Commit_DIR, this.hashCode);
         writeObject(file, this);
-        for(Blob b : this.files) {
-            b.save();
+        if(this.files != null) {
+            for(Blob b : this.files) {
+                b.save();
+            }
         }
     }
 

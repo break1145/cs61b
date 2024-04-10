@@ -72,7 +72,9 @@ public class CommitTree implements Serializable {
             Utils.message("Date "+ node.val.getCurrentDate().toString());
             Utils.message(node.val.getMessage());
             Utils.message("");
-
+            if(node.parents.isEmpty()) {
+                break;
+            }
             node = node.parents.get(0);
         }
     }
@@ -92,7 +94,7 @@ public class CommitTree implements Serializable {
         public LinkedList<CTreeNode> children;
         public CTreeNode(Commit commit) {
             this.val = commit;
-            this.parents = null;
+            this.parents = new ArrayList<>();
             this.children = new LinkedList<>();
         }
     }
