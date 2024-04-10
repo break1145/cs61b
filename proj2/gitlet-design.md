@@ -79,9 +79,18 @@ HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
    - 不在`StagingArea`，不在`HEAD Commit`<p>
         输出 No reason to remove the file.
 5. log
-
 6. global-log
-
+7. status
+   1. 分支列表及当前分支 
+        TODO
+   2. 追踪的文件
+        最新`ommit`∪`StagingArea`
+   3. 删除暂存区 预删除文件
+        `removedStagingArea`
+   4. 修改但未提交的文件
+        `startcheck()`会将修改的文件加入stagingArea。也就是说，`stagingArea`∩`LatestCommit`的结果就是修改但未提交的文件
+   5. 未追踪的文件
+        遍历工作区，与`追踪文件`的差
 
 ## Algorithms
 1. 更新：程序启动时队所有跟踪的文件执行`add`操作，让`add`分辨哪些文件有更新
