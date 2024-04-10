@@ -162,7 +162,11 @@ public class Repository {
         newCommit = updateFile(newCommit);
         newCommit.save();
 
-        //TODO: 从工作区删除对应文件
+        // 从工作区删除文件
+        for(Blob b : removedStagingArea) {
+            Utils.restrictedDelete(b.getFile());
+        }
+
         commitTree.add_Commit(newCommit);
         writeObject(CommitTree_DIR_File, commitTree);
         stagingArea.clear();
@@ -247,10 +251,19 @@ public class Repository {
         writeObject(Removed_Staging_Area_File, removedStagingArea);
     }
 
+    /**
+     * command log
+     * 利用commitTree中的方法打印从head到初始commit的log
+     * */
     public static void log() {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         commitTree.printTreefromHead();
     }
+
+    /**
+     * command global_log
+     * 使用Utils.plainFilenamesIn(),遍历commits文件夹内所有commit
+     * */
     public static void global_log() {
         List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
         for(String commitID : commitList) {
@@ -264,7 +277,45 @@ public class Repository {
 
     }
 
+    /**
+     * command find [message]
+     *  遍历commits目录，查找符合条件的commit并输出id
+     * */
+    public static void find(String message) {
+        List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
+        Boolean founded = false;
+        for(String commitID : commitList) {
+            Commit currentCommit = readObject(join(Commit_DIR, commitID), Commit.class);
+            if(currentCommit.getMessage().equals(message)) {
+                message(currentCommit.getHashCode());
+                founded = true;
+            }
+        }
+        if(!founded) {
+            message("Found no commit with that message.");
+        }
+    }
+    /**
+     * command status
+     * 显示
+     * 1. 分支列表及当前分支
+     * 2. 追踪的文件
+     * 3. 删除暂存区 预删除文件
+     * 4. TODO: 修改但未提交的文件
+     * 5. TODO: 未追踪的文件
+     * */
+    public static void status() {
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
 
+        //TODO: branch
+        //TODO: staged(tracked)
+        //TODO: removed
+        //TODO: modified but not commit
+        //TODO: Untracked
+
+    }
 
 
 }

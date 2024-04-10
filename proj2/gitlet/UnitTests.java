@@ -79,6 +79,17 @@ public class UnitTests {
             writeContents(join(CWD, "testReadFile.md"), b.getContent());
         }
     }
+    @Test
+    public void testRM() {
+        // 测试搁置 父目录包含gitlet
+        Repository.remove(new File("gitlet/test.md"));
+        Repository.commit("delete file");
+        Repository.log();
+    }
+    @Test
+    public void testFind() {
+        Repository.find("change file");
+    }
 
 }
 
