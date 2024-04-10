@@ -3,6 +3,7 @@ package gitlet;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -34,7 +35,7 @@ public class CommitTree implements Serializable {
             return false;
         }
         this.head.children.add(newNode);
-        newNode.parent = head;
+        newNode.parents.add(head);
         head = newNode;
         size += 1;
         return true;
@@ -72,7 +73,7 @@ public class CommitTree implements Serializable {
             Utils.message(node.val.getMessage());
             Utils.message("");
 
-            node = node.parent;
+            node = node.parents.get(0);
         }
     }
 
@@ -86,11 +87,12 @@ public class CommitTree implements Serializable {
      * */
     private static class CTreeNode implements Serializable{
         public Commit val;
-        public CTreeNode parent;
+        //public CTreeNode parent;
+        public List<CTreeNode> parents;
         public LinkedList<CTreeNode> children;
         public CTreeNode(Commit commit) {
             this.val = commit;
-            this.parent = null;
+            this.parents = null;
             this.children = new LinkedList<>();
         }
     }
