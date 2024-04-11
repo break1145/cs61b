@@ -56,8 +56,8 @@ public class Blob implements Serializable {
             return false;
         }
         Blob other = (Blob) obj;
-        // compare SHA-1
-        return this.shaCode.equals(other.shaCode);
+        // compare
+        return this.shaCode.trim().equals(other.shaCode.trim());
     }
 
 }

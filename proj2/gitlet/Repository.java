@@ -53,6 +53,7 @@ public class Repository {
     public static final File CommitTree_DIR_File = join(CommitTree_DIR, "commitTree.ser");
     public static final File Files_DIR = join(GITLET_DIR, "blobs");
 
+    public static final File Addition_File = join(Staging_Area, "addition.ser");
 //    public static final File Tracked_DIR = join(Staging_Area, "tracked");
 //    public static final File Tracked_DIR_File = join(Tracked_DIR, "tracked.ser");
 
@@ -80,6 +81,7 @@ public class Repository {
         HashSet<Blob> stagingArea = new HashSet<>();
         CommitTree commitTree = new CommitTree();
         HashSet<Blob> removedStagingArea = new HashSet<>();
+        HashSet<Blob> additionArea = new HashSet<>();
 
         // make first commit
         Commit commit = new Commit("initial commit");
@@ -89,6 +91,7 @@ public class Repository {
         writeObject(Staging_Area_File, stagingArea);
         writeObject(CommitTree_DIR_File, commitTree);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
+        writeObject(Addition_File, additionArea);
 
     }
 
@@ -102,16 +105,17 @@ public class Repository {
         }
         // 获取HEAD的Commit
         Blob blob = new Blob(file);
-        add(blob);
+        add(blob, false);
     }
     /**
      * 将blob加入暂存区，并检查是否有改动。
      * @param blob 一个Blob对象
      *
      * */
-    private static void add(Blob blob) {
+    private static void add(Blob blob, boolean fromStartCheck) {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
 
         HashSet<String> filesCodehashSet = commitTree.getHeadCommit().filesCode;
         if(filesCodehashSet.contains(blob.getShaCode())) {
@@ -128,7 +132,11 @@ public class Repository {
         }
 
         stagingArea.add(blob);
+        if(!fromStartCheck) {
+            additionArea.add(blob);
+        }
         writeObject(Staging_Area_File, stagingArea);
+        writeObject(Addition_File, additionArea);
     }
 
     /**
@@ -141,7 +149,7 @@ public class Repository {
         for(Blob blob : blobs) {
             // 根据HEAD Commit的File路径在工作区内读取文件
             Blob newBlob = new Blob(blob.getFile());
-            add(newBlob);
+            add(newBlob, true);
         }
     }
 
@@ -149,6 +157,8 @@ public class Repository {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
+
 
         if(stagingArea.isEmpty() && removedStagingArea.isEmpty()) {
             // no file changed
@@ -173,6 +183,8 @@ public class Repository {
         writeObject(Staging_Area_File,stagingArea);
         removedStagingArea.clear();
         writeObject(Removed_Staging_Area_File, removedStagingArea);
+        additionArea.clear();
+        writeObject(Addition_File,additionArea);
     }
     /**
      * update files in stagingArea and remove from removeStagingArea
@@ -295,10 +307,11 @@ public class Repository {
             message("Found no commit with that message.");
         }
     }
+
     /**
      * command status
      * 显示
-     * 1. 分支列表及当前分支
+     * 1. //TODO: 分支列表及当前分支
      * 2. 追踪的文件
      * 3. 删除暂存区 预删除文件
      * 4. TODO: 修改但未提交的文件
@@ -308,14 +321,43 @@ public class Repository {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
 
+        Commit headCommit = commitTree.getHeadCommit();
         //TODO: branch
-        //TODO: staged(tracked)
-        //TODO: removed
-        //TODO: modified but not commit
+        message("=== Branches ===");
+        message("");
+        //staged(tracked)
+        HashSet<Blob> staged = new HashSet<>(headCommit.files);
+        staged.addAll(additionArea);
+        message("=== Staged Files ===");
+        for(Blob b : staged) {
+            message(b.getFile().getName());
+        }
+        message("");
+        //TODO: removed (haven't tested)
+        message("=== Removed Files ===");
+        for(Blob b : removedStagingArea) {
+            message(b.getFile().getName());
+        }
+        message("");
+        //modified but not commit
+        message("=== Modifications Not Staged For Commit ===");
+        //modified
+        HashSet<Blob> modified = new HashSet<>(stagingArea);
+        modified.removeAll(additionArea);
+        for(Blob b : modified) {
+            message(b.getFile().getName() + " (modified)");
+        }
+        //TODO: deleted
+
+        message("");
         //TODO: Untracked
+        message("=== Untracked Files ===");
+        message("");
 
     }
+
 
 
 }

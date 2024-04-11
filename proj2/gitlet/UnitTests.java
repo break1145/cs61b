@@ -81,7 +81,7 @@ public class UnitTests {
     }
     @Test
     public void testRM() {
-        // 测试搁置 父目录包含gitlet
+        // TODO:测试搁置 父目录包含gitlet
         Repository.remove(new File("gitlet/test.md"));
         Repository.commit("delete file");
         Repository.log();
@@ -90,6 +90,14 @@ public class UnitTests {
     public void testFind() {
         Repository.find("change file");
     }
+    @Test
+    public void testStatus() {
+        Repository.startCheck();
+        Repository.status();
+    }
+
+
+
 
 }
 
