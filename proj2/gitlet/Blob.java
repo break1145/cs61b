@@ -44,6 +44,10 @@ public class Blob implements Serializable {
         writeObject(blobFile, this);
 
     }
+    @Override
+    public int hashCode() {
+        return shaCode.hashCode();
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -57,7 +61,7 @@ public class Blob implements Serializable {
         }
         Blob other = (Blob) obj;
         // compare
-        return this.shaCode.trim().equals(other.shaCode.trim());
+        return this.shaCode.equals(other.shaCode);
     }
 
 }

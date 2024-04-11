@@ -327,6 +327,7 @@ public class Repository {
         //TODO: branch
         message("=== Branches ===");
         message("");
+
         //staged(tracked)
         HashSet<Blob> staged = new HashSet<>(headCommit.files);
         staged.addAll(additionArea);
@@ -335,12 +336,14 @@ public class Repository {
             message(b.getFile().getName());
         }
         message("");
+
         //TODO: removed (haven't tested)
         message("=== Removed Files ===");
         for(Blob b : removedStagingArea) {
             message(b.getFile().getName());
         }
         message("");
+
         //modified but not commit
         message("=== Modifications Not Staged For Commit ===");
         //modified
@@ -352,10 +355,76 @@ public class Repository {
         //TODO: deleted
 
         message("");
-        //TODO: Untracked
+
+        //Untracked
         message("=== Untracked Files ===");
+        List<String> fileList = Utils.plainFilenamesIn(CWD);
+        for(String file : fileList) {
+            Blob b = new Blob(new File(file));
+            if(!staged.contains(b)) {
+                message(b.getFile().getName());
+            }
+        }
         message("");
 
+    }
+
+    /**
+     * command checkout
+     * 1. checkout -- [file name]
+     *
+     * 2. checkout [commit id] -- [file name]
+     *
+     * 3. checkout [branch name]
+     * */
+    public static void checkout(String[] args) {
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        // case 1
+        if (args[0].equals("--")) {
+            String filename = args[1];
+            Commit headCommit = commitTree.getHeadCommit();
+
+            if(!randw(filename, headCommit)) {
+                message("File does not exist in that commit.");
+                exit(0);
+            }
+        }
+
+        // case 2
+        if(args[1].equals("--")) {
+            String commitID = args[0];
+            String filename = args[2];
+            List<String> commitIDList = plainFilenamesIn(Commit_DIR);
+            if (commitIDList != null && commitIDList.contains(commitID)) {
+                Commit forwardCommit = readObject(join(Commit_DIR, commitID), Commit.class);
+                if(!randw(filename, forwardCommit)) {
+                    message("File does not exist in that commit.");
+                    exit(0);
+                }
+            } else {
+                message("No commit with that id exists");
+            }
+        }
+
+        //case 3
+        //TODO: branch has not implemented
+    }
+
+    /**
+     * get a file named filename in commit c from blobs and write to CWD
+     * @return true if and only if file is found and write successfully,otherwise false
+     * */
+    public static boolean randw(String filename, Commit c) {
+        for(Blob b : c.files) {
+            if(b.getFile().getName().equals(filename)) {
+                Blob newBlob = readObject(join(Files_DIR, b.getShaCode()), Blob.class);
+                writeContents(join(CWD, newBlob.getFile().getName()), newBlob.getContent());
+                return true;
+            }
+        }
+        return false;
     }
 
 

@@ -96,7 +96,16 @@ public class UnitTests {
         Repository.status();
     }
 
-
+    @Test
+    public void testIteminHashSet() {
+        HashSet<Blob> newHashset = new HashSet<>();
+        Blob b1 = new Blob(new File("gitlet/test.md"));
+        Blob b2 = new Blob(new File("gitlet/test.md"));
+        newHashset.add(b1);
+        System.out.println(newHashset.contains(b2));
+        System.out.println(b1.getFile().getName());
+//        System.out.println(b2.getShaCode());
+    }
 
 
 }
