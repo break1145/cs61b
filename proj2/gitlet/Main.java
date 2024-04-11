@@ -7,6 +7,7 @@ import static gitlet.Repository.*;
 import static gitlet.Utils.join;
 import static gitlet.Utils.message;
 
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author break
  */
@@ -17,8 +18,9 @@ public class Main {
      */
     public static void main(String[] args) {
 
-        Repository.startCheck();
-
+        if(GITLET_DIR.isDirectory()) {
+            Repository.startCheck();
+        }
         if (args.length == 0) {
             // TODO: what if args is empty?
             System.out.println("Please enter a command.");
