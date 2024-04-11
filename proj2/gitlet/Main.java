@@ -4,7 +4,8 @@ package gitlet;
 import java.io.File;
 
 import static gitlet.Repository.*;
-import static gitlet.Utils.*;
+import static gitlet.Utils.join;
+import static gitlet.Utils.message;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author break

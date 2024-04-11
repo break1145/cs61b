@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
-import static gitlet.Repository.*;
+import static gitlet.Repository.Commit_DIR;
 import static gitlet.Utils.*;
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class

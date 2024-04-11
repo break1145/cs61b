@@ -6,8 +6,8 @@ import org.junit.Test;
 import java.io.File;
 import java.util.HashSet;
 
-import static gitlet.Utils.*;
 import static gitlet.Repository.*;
+import static gitlet.Utils.*;
 public class UnitTests {
     @org.junit.Test
     public void testAddCommit() {
