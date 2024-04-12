@@ -15,6 +15,9 @@
     - stagingArea.ser
     - removed.ser
     - tracked.ser
+  - `/branches`
+    - master
+    - xxx
 ***
 **类设计**
 1. `Commit`<p>
@@ -50,18 +53,25 @@ public void save();
 public boolean equals();
 ````
 3. `Staging_Area`
+
 ```java
-HashSet<Blob> stagingArea = new HashSet<>();
-HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
+HashSet<Blob> stagingArea;
+HashSet<Blob> removedStagingArea;
+HashSet<Blob> addition;
 ```
 暂存区。当调用`add(File f)`或`add(Blob b)`时向其中添加。
 程序启动时，尝试对所有已追踪的文件调用`add()`，以达到检测文件更新的目的。也就是说，当调用`commit()`时，暂存区内会包含`add()`的文件和有更改的文件  
 [已追踪] `当前HEAD指向的Commit包含的文件`∪`暂存区内文件`
+`addition`代表已添加但未提交的文件，仅用于 `git status`
 ***
+3. 'branches'
+分支是对`commit`的引用。 `initialize()`会创建默认分支 `master`，从`initial commit`开始。  
+每个`branch`指向一个`commit`，通过遍历`commitTree`获得`branch`关系。
+
 
 ## 命令设计
 1. init
-    创建`/.gitlet`文件夹并补全文件结构。同时向`commitTree`添加初始commit
+    创建`/.gitlet`文件夹并补全文件结构。同时向`commitTree`添加初始commit,创建`master`分支并设置为当前分支
     
     - 失败情况：已经存在`/.gitlet`
 2. add<p>
@@ -96,19 +106,19 @@ HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         遍历工作区，与`追踪文件`的差
 8. checkout
    ```
-   java gitlet.Main checkout -- [file name]
+   1. checkout -- [file name]
    获取文件在头提交中存在的版本，并将其放入工作目录，
    覆盖已经存在的文件版本（如果存在的话）。新文件版本不会被暂存。
    ```
    从头提交获取对应文件并写入工作区
    ```
-   java gitlet.Main checkout [commit id] -- [file name]
+   2. checkout [commit id] -- [file name]
    获取文件在具有给定ID的提交中存在的版本，并将其放入工作目录，
    覆盖已经存在的文件版本（如果存在的话）。新文件版本不会被暂存。
    ```
    根据id查找commit，获取文件、写入工作区
    ```
-   java gitlet.Main checkout [branch name]
+   3. checkout [branch name]
    获取给定分支头部提交中的所有文件，并将它们放入工作目录，
    覆盖已经存在的文件版本（如果存在的话）。此命令结束后，给定分支将被视为当前分支（HEAD）。
    任何在当前分支中被跟踪但在被检出分支中不存在的文件将被删除。暂存区被清空，除非被检出分支是当前分支。
@@ -124,6 +134,18 @@ HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         - 工作区有文件未跟踪，输出`There is an untracked file in the way; delete it, or add and commit it first.`
 
      以上情况均不修改工作区
+9. branch  
+    ```java
+    private Commit startCommit;
+    private Commit headCommit;
+    private String branchName;
+    getter();
+    setter();
+    ```
+    每个分支包含起始commit、headCommit和分支名。
+    `branch [branch name]`以当前headCommit为起点创建一个分支。  
+    将当前分支储存在`commitTree`中，调用`addCommit`方法后修改该分支的`headCommit`
+    
 
 ## Algorithms
 1. 更新：程序启动时队所有跟踪的文件执行`add`操作，让`add`分辨哪些文件有更新
