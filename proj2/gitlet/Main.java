@@ -51,6 +51,13 @@ public class Main {
             case "log":
                 Repository.log();
                 break;
+            case "checkout":
+                if(args.length <= 1) {
+                    message("Please enter a file path.");
+                } else if (true) {
+
+                }
+
             default:
                 // TODO: Output messages for error commands
 

@@ -16,11 +16,33 @@ public class CommitTree implements Serializable {
     public CTreeNode head;
     private CTreeNode root;
     private int size;
+    private branch currentBranch;
+    private String currentBranchName;
     public CommitTree() {
         this.head = null;
     }
     /**
-     * add commit to the tree. only make change on CommitTree
+     * get bvranch from name
+     * */
+    public void setCurrentBranch(String currentBranchName) {
+        this.currentBranchName = currentBranchName;
+        getCurrentBranch();
+    }
+    /**
+     * read branch from file and save to this
+     * */
+    public branch getCurrentBranch() {
+        this.currentBranch = Utils.readObject(Utils.join(Repository.Branch_DIR, currentBranchName), branch.class);
+        return this.currentBranch;
+    }
+    /**
+     * save branch to file
+     * */
+    private void saveCurrentBranch() {
+        Utils.writeObject(Utils.join(Repository.Branch_DIR, currentBranchName),this.currentBranch);
+    }
+    /**
+     * add commit to the tree. only make change on CommitTree and current branch
      * */
     public boolean add_Commit(Commit commit) {
         CTreeNode newNode = new CTreeNode(commit);
@@ -38,6 +60,11 @@ public class CommitTree implements Serializable {
         newNode.parents.add(head);
         head = newNode;
         size += 1;
+
+        getCurrentBranch();
+        this.currentBranch.headCommitID = head.val.hashcode();
+        saveCurrentBranch();
+
         return true;
     }
 
@@ -79,8 +106,12 @@ public class CommitTree implements Serializable {
         }
     }
 
+    /**
+     * 获取当前分支的headCommit
+     * */
     public Commit getHeadCommit() {
-        return this.head.val;
+//        return this.head.val;
+        return Utils.readObject(Utils.join(Repository.Commit_DIR, this.currentBranch.headCommitID), Commit.class);
     }
     public int size(){return this.size;}
 
