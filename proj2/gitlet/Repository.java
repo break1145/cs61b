@@ -453,7 +453,22 @@ public class Repository {
                     exit(0);
                 }
                 // case3 所有文件都已追踪，切换分支
-                //TODO: 切换分支，将forwardBranch的headCommit的所有文件写入工作区
+                //切换分支，将forwardBranch的headCommit的所有文件写入工作区
+                commitTree.setCurrentBranch(branchName);
+                headCommit = commitTree.getHeadCommit();
+                // 清空CWD
+                List<String> filenames = plainFilenamesIn(CWD);
+                for(String filename : filenames) {
+                    restrictedDelete(new File(filename));
+                }
+                for(String fileCode : headCommit.filesCode) {
+                    Blob newBlob = readObject(join(Files_DIR, fileCode), Blob.class);
+                    writeContents(join(CWD, newBlob.getFile().getName()), newBlob.getContent());
+                }
+                stagingArea.clear();
+
+                writeObject(Staging_Area_File, stagingArea);
+                writeObject(CommitTree_DIR_File, commitTree);
 
             } else {
                 message("No such branch exists.");
