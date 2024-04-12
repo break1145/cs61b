@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 import static gitlet.Utils.*;
 import static java.lang.System.exit;
@@ -50,6 +51,7 @@ public class Repository {
     public static final File Files_DIR = join(GITLET_DIR, "blobs");
 
     public static final File Addition_File = join(Staging_Area, "addition.ser");
+    public static final File Branch_DIR = join(GITLET_DIR, "branches");
 //    public static final File Tracked_DIR = join(Staging_Area, "tracked");
 //    public static final File Tracked_DIR_File = join(Tracked_DIR, "tracked.ser");
 
@@ -61,6 +63,7 @@ public class Repository {
         Commit_DIR.mkdir();
         Files_DIR.mkdir();
         CommitTree_DIR.mkdir();
+        Branch_DIR.mkdir();
     }
 
     /**
@@ -84,6 +87,11 @@ public class Repository {
         commitTree.add_Commit(commit);
         commit.save();
 
+        //创建默认分支 master
+        branch master = new branch(commit.hashcode(), "master");
+        commitTree.setCurrentBranch("master");
+
+        writeObject(Branch_DIR, master);
         writeObject(Staging_Area_File, stagingArea);
         writeObject(CommitTree_DIR_File, commitTree);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
@@ -320,8 +328,17 @@ public class Repository {
         HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
 
         Commit headCommit = commitTree.getHeadCommit();
-        //TODO: branch
+        //branch
         message("=== Branches ===");
+        List<String> branchList= plainFilenamesIn(Branch_DIR);
+        branch currentBranch = commitTree.getCurrentBranch();
+        for(String branch : Objects.requireNonNull(branchList)) {
+            if (branch.equals(currentBranch.getbranchName())) {
+                message("*", branch);
+            } else {
+                message(branch);
+            }
+        }
         message("");
 
         //staged(tracked)
@@ -377,6 +394,7 @@ public class Repository {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
         // case 1
         if (args[0].equals("--")) {
             String filename = args[1];
@@ -401,11 +419,50 @@ public class Repository {
                 }
             } else {
                 message("No commit with that id exists");
+                exit(0);
             }
         }
 
         //case 3
-        //TODO: branch has not implemented
+        String branchName = args[0];
+        if (branchName.equals(commitTree.getCurrentBranch().getbranchName())) {
+            message("No need to checkout the current branch.");
+            exit(0);
+        } else {
+            List<String> branchList = plainFilenamesIn(Branch_DIR);
+            if (branchList != null && branchList.contains(branchName)) {
+                branch forwardBranch = readObject(join(Branch_DIR, branchName), branch.class);
+                Commit headCommit = commitTree.getHeadCommit();
+
+                HashSet<Blob> staged = new HashSet<>(headCommit.files);
+                staged.addAll(additionArea);
+                // case1 未跟踪
+                List<String> fileList = Utils.plainFilenamesIn(CWD);
+                for(String file : fileList) {
+                    Blob b = new Blob(new File(file));
+                    if(!staged.contains(b)) {
+                        message("There is an untracked file in the way; delete it, or add and commit it first.");
+                        exit(0);
+                    }
+                }
+                // case2 修改未提交
+                HashSet<Blob> modified = new HashSet<>(stagingArea);
+                modified.removeAll(additionArea);
+                for(Blob b : modified) {
+                    message("There is an untracked file in the way; delete it, or add and commit it first.");
+                    exit(0);
+                }
+                // case3 所有文件都已追踪，切换分支
+                //TODO: 切换分支，将forwardBranch的headCommit的所有文件写入工作区
+
+            } else {
+                message("No such branch exists.");
+                exit(0);
+            }
+        }
+
+
+
     }
 
     /**
@@ -423,7 +480,20 @@ public class Repository {
         return false;
     }
 
+    /*
+     * create a branch which begin at current headCommit
+     * */
+    public static void branch(String branchName) {
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        branch newBranch = new branch(commitTree.getHeadCommit().getHashCode(), branchName);
+        writeObject(join(Branch_DIR, branchName), newBranch);
+    }
 
+    /**
+    */
+    public static void removeBranch(String branchName) {
+        restrictedDelete(join(Branch_DIR, branchName));
+    }
 
 }
 
