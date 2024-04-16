@@ -1,9 +1,7 @@
 package gitlet;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static gitlet.Utils.*;
 import static java.lang.System.exit;
@@ -87,11 +85,13 @@ public class Repository {
         commitTree.add_Commit(commit);
         commit.save();
 
-        //创建默认分支 master
+        //create a default master
         branch master = new branch(commit.hashcode(), "master");
+        File newBranchFile = join(Branch_DIR, master.getbranchName());
+        writeObject(newBranchFile, master);
+
         commitTree.setCurrentBranch("master");
 
-        writeObject(Branch_DIR, master);
         writeObject(Staging_Area_File, stagingArea);
         writeObject(CommitTree_DIR_File, commitTree);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
@@ -107,13 +107,13 @@ public class Repository {
             System.out.println("File does not exist.");
             exit(0);
         }
-        // 获取HEAD的Commit
+        // get Head Commit
         Blob blob = new Blob(file);
         add(blob, false);
     }
     /**
-     * 将blob加入暂存区，并检查是否有改动。
-     * @param blob 一个Blob对象
+     * add blob to staging area and check if any change occured
+     * @param blob a blob
      *
      * */
     private static void add(Blob blob, boolean fromStartCheck) {
@@ -127,7 +127,7 @@ public class Repository {
             return;
         }
 
-        // 如果暂存区内存在同名文件 将该文件替换为blob
+        // if a file in stagingArea and name is same as blob's,change it to blob
         for(Blob blob2 : stagingArea) {
             if(blob2.getFile().equals(blob.getFile())) {
                 stagingArea.remove(blob2);
@@ -144,17 +144,20 @@ public class Repository {
     }
 
     /**
-     * 程序启动时 对HEAD Commit的所有文件调用add(Blob b) 将更改加入暂存区
+     * when program starts,call each file in headCCommit with method add, and add change into stagingArea
      * */
     public static void startCheck() {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> blobs = commitTree.getHeadCommit().files;
-        for(Blob blob : blobs) {
-            // 根据HEAD Commit的File路径在工作区内读取文件
-            Blob newBlob = new Blob(blob.getFile());
-            add(newBlob, true);
+        if(blobs != null) {
+            for(Blob blob : blobs) {
+                // read file in CWD as headCommit's file path
+                Blob newBlob = new Blob(blob.getFile());
+                add(newBlob, true);
+            }
         }
+
     }
 
     public static void commit(String message) {
@@ -172,11 +175,11 @@ public class Repository {
         Commit latestCommit = commitTree.getHeadCommit();
         Commit newCommit = new Commit(latestCommit, message);
 
-        // 更新并保存commit
+        // update and save commit
         newCommit = updateFile(newCommit);
         newCommit.save();
 
-        // 从工作区删除文件
+        // delete file in CWD
         for(Blob b : removedStagingArea) {
             Utils.restrictedDelete(b.getFile());
         }
@@ -195,7 +198,7 @@ public class Repository {
      * @return a HashSet contains files. if file differ from one in stagingArea,use it.Or use the old
      * */
     private static Commit updateFile(Commit commit) {
-        // 根据暂存区更新 commit
+        // update commit in stagingArea
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
 
@@ -206,7 +209,7 @@ public class Repository {
         } else {
             updatedFiles = new HashSet<>(updatedCommit.files);
         }
-        // 添加暂存区中的文件到更新后的文件列表
+        // add files in stagingArea to updated file list
         for(Blob b : stagingArea) {
             boolean found = false;
             for(Blob b2 : updatedFiles) {
@@ -220,7 +223,7 @@ public class Repository {
                 updatedFiles.add(b);
             }
         }
-        // 将删除区的文件从commit中删除
+        // delete all files in removedStagingArea from commit
         for(Blob b : removedStagingArea) {
             for(Blob b2 : updatedFiles) {
                 if(b.getPath().equals(b2.getPath())) {
@@ -229,7 +232,7 @@ public class Repository {
                 }
             }
         }
-        // 更新文件列表和文件 SHA-1 校验码
+        // update file list and its SHA-1 code
         updatedCommit.files = updatedFiles;
         updatedCommit.filesCode.clear();
         for (Blob file : updatedFiles) {
@@ -278,7 +281,7 @@ public class Repository {
 
     /**
      * command global_log
-     * 使用Utils.plainFilenamesIn(),遍历commits文件夹内所有commit
+     * usage Utils.plainFilenamesIn(),traverse all commit in folder commit
      * */
     public static void global_log() {
         List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
@@ -286,7 +289,10 @@ public class Repository {
             Commit currentCommit = readObject(join(Commit_DIR, commitID), Commit.class);
             System.out.println("===");
             System.out.println("Commit " + currentCommit.getHashCode());
-            System.out.println("Date " + currentCommit.getCurrentDate());
+            Formatter formatter = new Formatter(Locale.ENGLISH);
+            Date currentDate = new Date();
+            String formattedDate = String.valueOf(formatter.format("Date: %ta %tb %td %tT %tY %tz", currentDate, currentDate, currentDate, currentDate, currentDate, currentDate));
+            Utils.message(formattedDate);
             System.out.println(currentCommit.getMessage());
             System.out.println();
         }
@@ -295,7 +301,7 @@ public class Repository {
 
     /**
      * command find [message]
-     *  遍历commits目录，查找符合条件的commit并输出id
+     *  traverse commit DIR ,find and print appropriate commit's ID
      * */
     public static void find(String message) {
         List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
@@ -315,11 +321,11 @@ public class Repository {
     /**
      * command status
      * 显示
-     * 1. //TODO: 分支列表及当前分支
-     * 2. 追踪的文件
-     * 3. 删除暂存区 预删除文件
-     * 4. TODO: 修改但未提交的文件
-     * 5. TODO: 未追踪的文件
+     * 1. branch list and current branch
+     * 2. tracked files
+     * 3. files in removedStagingArea
+     * 4. TODO:changed but not commit files
+     * 5. TODO:untracked files
      * */
     public static void status() {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
@@ -396,20 +402,22 @@ public class Repository {
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
         // case 1
-        if (args[0].equals("--")) {
-            String filename = args[1];
+
+        if (args[1].equals("--")) {
+
+            String filename = args[2];
             Commit headCommit = commitTree.getHeadCommit();
 
             if(!randw(filename, headCommit)) {
                 message("File does not exist in that commit.");
-                exit(0);
             }
+            exit(0);
         }
 
         // case 2
-        if(args[1].equals("--")) {
-            String commitID = args[0];
-            String filename = args[2];
+        if(args[2].equals("--")) {
+            String commitID = args[1];
+            String filename = args[3];
             List<String> commitIDList = plainFilenamesIn(Commit_DIR);
             if (commitIDList != null && commitIDList.contains(commitID)) {
                 Commit forwardCommit = readObject(join(Commit_DIR, commitID), Commit.class);
@@ -421,10 +429,11 @@ public class Repository {
                 message("No commit with that id exists");
                 exit(0);
             }
+            exit(0);
         }
 
         //case 3
-        String branchName = args[0];
+        String branchName = args[1];
         if (branchName.equals(commitTree.getCurrentBranch().getbranchName())) {
             message("No need to checkout the current branch.");
             exit(0);
@@ -436,7 +445,7 @@ public class Repository {
 
                 HashSet<Blob> staged = new HashSet<>(headCommit.files);
                 staged.addAll(additionArea);
-                // case1 未跟踪
+                // case1 untracked
                 List<String> fileList = Utils.plainFilenamesIn(CWD);
                 for(String file : fileList) {
                     Blob b = new Blob(new File(file));
@@ -445,18 +454,18 @@ public class Repository {
                         exit(0);
                     }
                 }
-                // case2 修改未提交
+                // case2 change hasn't been commited
                 HashSet<Blob> modified = new HashSet<>(stagingArea);
                 modified.removeAll(additionArea);
                 for(Blob b : modified) {
                     message("There is an untracked file in the way; delete it, or add and commit it first.");
                     exit(0);
                 }
-                // case3 所有文件都已追踪，切换分支
-                //切换分支，将forwardBranch的headCommit的所有文件写入工作区
+                // case3 all file is tracked and no change to commit,start changing branch
+
                 commitTree.setCurrentBranch(branchName);
                 headCommit = commitTree.getHeadCommit();
-                // 清空CWD
+                // clear CWD
                 List<String> filenames = plainFilenamesIn(CWD);
                 for(String filename : filenames) {
                     restrictedDelete(new File(filename));
@@ -469,7 +478,7 @@ public class Repository {
 
                 writeObject(Staging_Area_File, stagingArea);
                 writeObject(CommitTree_DIR_File, commitTree);
-
+                exit(0);
             } else {
                 message("No such branch exists.");
                 exit(0);

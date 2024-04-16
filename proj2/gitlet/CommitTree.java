@@ -1,9 +1,7 @@
 package gitlet;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -96,7 +94,11 @@ public class CommitTree implements Serializable {
         while(node != null) {
             Utils.message("===");
             Utils.message("commit "+ node.val.hashcode());
-            Utils.message("Date "+ node.val.getCurrentDate().toString());
+            // 使用formatter输出标准日期
+            Formatter formatter = new Formatter(Locale.ENGLISH);
+            Date currentDate = new Date();
+            String formattedDate = String.valueOf(formatter.format("Date: %ta %tb %td %tT %tY %tz", currentDate, currentDate, currentDate, currentDate, currentDate, currentDate));
+            Utils.message(formattedDate);
             Utils.message(node.val.getMessage());
             Utils.message("");
             if(node.parents.isEmpty()) {

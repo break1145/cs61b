@@ -30,6 +30,7 @@ public class UnitTests {
         Repository.initialize();
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         commitTree.printTree();
+        Repository.startCheck();
     }
 
     @org.junit.Test
@@ -60,8 +61,7 @@ public class UnitTests {
     @Test
     public void testLog() {
         Repository.log();
-        System.out.println("~~~~~~~~");
-        Repository.global_log();
+
     }
 
     @Test

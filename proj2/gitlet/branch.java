@@ -8,6 +8,7 @@ public class branch implements Serializable {
     private String branchName;
     public branch(String startCommit, String branchName) {
         this.startCommitID = startCommit;
+        this.headCommitID = startCommit;
         this.branchName = branchName;
     }
     public String getbranchName() {
