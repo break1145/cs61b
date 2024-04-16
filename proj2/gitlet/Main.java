@@ -2,6 +2,7 @@ package gitlet;
 
 
 import java.io.File;
+import java.util.Arrays;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.join;
@@ -22,7 +23,6 @@ public class Main {
             Repository.startCheck();
         }
         if (args.length == 0) {
-            // TODO: what if args is empty?
             System.out.println("Please enter a command.");
             System.exit(0);
         }
@@ -32,10 +32,9 @@ public class Main {
                 initialize();
                 break;
             case "add":
-                File file = join(GITLET_DIR, args[1]);
+                File file = join(CWD, args[1]);
                 add(file);
                 break;
-            // TODO: FILL THE REST IN
             case "commit":
                 if(args.length <= 1) {
                     message("Please enter a commit message.");
@@ -54,8 +53,8 @@ public class Main {
             case "checkout":
                 if(args.length <= 1) {
                     message("Please enter a file path.");
-                } else if (true) {
-
+                } else {
+                    Repository.checkout(args);
                 }
 
             default:
