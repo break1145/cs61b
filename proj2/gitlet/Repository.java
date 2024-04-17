@@ -50,6 +50,7 @@ public class Repository {
 
     public static final File Addition_File = join(Staging_Area, "addition.ser");
     public static final File Branch_DIR = join(GITLET_DIR, "branches");
+    public static final File Commit_Prefix_Map_File = join(Staging_Area, "commitPrefixMap.ser");
 //    public static final File Tracked_DIR = join(Staging_Area, "tracked");
 //    public static final File Tracked_DIR_File = join(Tracked_DIR, "tracked.ser");
 
@@ -79,6 +80,7 @@ public class Repository {
         CommitTree commitTree = new CommitTree();
         HashSet<Blob> removedStagingArea = new HashSet<>();
         HashSet<Blob> additionArea = new HashSet<>();
+        HashMap<String, String> commitPrefixMap = new HashMap<>();
 
         // make first commit
         Commit commit = new Commit("initial commit");
@@ -96,6 +98,7 @@ public class Repository {
         writeObject(CommitTree_DIR_File, commitTree);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
         writeObject(Addition_File, additionArea);
+        writeObject(Commit_Prefix_Map_File, commitPrefixMap);
 
     }
 
@@ -417,6 +420,10 @@ public class Repository {
         // case 2
         if(args[2].equals("--")) {
             String commitID = args[1];
+            if(commitID.length() == 6) {
+                HashMap<String, String> commitPrefixMap = readObject(Commit_Prefix_Map_File, HashMap.class);
+                commitID = commitPrefixMap.get(commitID);
+            }
             String filename = args[3];
             List<String> commitIDList = plainFilenamesIn(Commit_DIR);
             if (commitIDList != null && commitIDList.contains(commitID)) {
@@ -517,6 +524,33 @@ public class Repository {
     */
     public static void removeBranch(String branchName) {
         restrictedDelete(join(Branch_DIR, branchName));
+    }
+
+    /**
+     * Checks out all the files tracked by the given commit.
+     * Removes tracked files that are not present in that commit.
+     * Also moves the current branch’s head to that commit node
+     * */
+    public static void reset(String commitID) {
+        // clear CWD
+        List<String> filenames = plainFilenamesIn(CWD);
+        for(String filename : filenames) {
+            restrictedDelete(new File(filename));
+        }
+        // clear stagingArea
+        writeObject(Staging_Area_File, new HashSet<Blob>());
+        writeObject(Removed_Staging_Area_File, new HashSet<Blob>());
+
+        Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
+        if(commit.files != null) {
+            for(Blob b : commit.files) {
+                checkout(new String[]{commitID, "--", b.getFile().getName()});
+            }
+        }
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        branch currentBranch = commitTree.getCurrentBranch();
+        currentBranch.setHeadCommitID(commitID);
+
     }
 
 }

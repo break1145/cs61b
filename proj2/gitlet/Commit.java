@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import static gitlet.Repository.Commit_DIR;
+import static gitlet.Repository.Commit_Prefix_Map_File;
 import static gitlet.Utils.*;
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -71,6 +72,9 @@ public class Commit implements Serializable {
 
     public void save() {
         File file = join(Commit_DIR, this.hashCode);
+        String prefix = this.hashCode.substring(0, 5);
+        HashMap<String, String> commitPrefixMap = readObject(Commit_Prefix_Map_File, HashMap.class);
+        commitPrefixMap.put(prefix, this.hashCode);
         writeObject(file, this);
         if(this.files != null) {
             for(Blob b : this.files) {

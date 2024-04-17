@@ -56,6 +56,12 @@ public class Main {
                 } else {
                     Repository.checkout(args);
                 }
+            case "reset":
+                if(args.length <= 1) {
+                    message("Please enter a file path.");
+                } else {
+                    Repository.reset(args[1]);
+                }
 
             default:
                 // TODO: Output messages for error commands

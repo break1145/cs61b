@@ -36,7 +36,7 @@ public class CommitTree implements Serializable {
     /**
      * save branch to file
      * */
-    private void saveCurrentBranch() {
+    public void saveCurrentBranch() {
         Utils.writeObject(Utils.join(Repository.Branch_DIR, currentBranchName),this.currentBranch);
     }
     /**

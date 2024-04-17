@@ -14,4 +14,7 @@ public class branch implements Serializable {
     public String getbranchName() {
         return branchName;
     }
+    public void setHeadCommitID(String commitID) {
+        this.headCommitID = commitID;
+    }
 }
