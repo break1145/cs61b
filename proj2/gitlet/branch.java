@@ -1,20 +1,38 @@
 package gitlet;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import static gitlet.Utils.*;
 
 public class branch implements Serializable {
-    public String startCommitID;
-    public String headCommitID;
+    public List<String> commitList;
     private String branchName;
-    public branch(String startCommit, String branchName) {
-        this.startCommitID = startCommit;
-        this.headCommitID = startCommit;
+    private String startCommitID;
+    public branch(String branchName, String startCommit) {
         this.branchName = branchName;
+        commitList = new ArrayList<String>();
+        startCommitID = startCommit;
+        commitList.add(startCommit);
     }
-    public String getbranchName() {
+    public String getBranchName() {
         return branchName;
     }
-    public void setHeadCommitID(String commitID) {
-        this.headCommitID = commitID;
+    public String getStartCommitID() {
+        return startCommitID;
+    }
+    public List<String> getCommitList() {
+        return commitList;
+    }
+
+    public void setBranchName (String branchName) {
+        this.branchName = branchName;
+    }
+    public void setStartCommitID(String startCommitID) {
+        this.startCommitID = startCommitID;
+    }
+
+    public Commit getHeadCommit() {
+        return Utils.readObject(join(Repository.Commit_DIR, this.commitList.get(this.commitList.size() - 1)), Commit.class);
     }
 }

@@ -1,7 +1,7 @@
 # Gitlet Design Document
 
 **Name**:break<p>
-**Partner**:ChatGPT(3.5)
+**Partner**:ChatGPT
 
 ## 类和数据结构
 **项目结构**
@@ -130,7 +130,7 @@ HashSet<Blob> addition;
     覆盖已经存在的文件版本（如果存在的话）。此命令结束后，给定分支将被视为当前分支（HEAD）。
     任何在当前分支中被跟踪但在被检出分支中不存在的文件将被删除。暂存区被清空，除非被检出分支是当前分支。
     ```
-    实现 通过commitID的前6位 来checkout：额外维护一个哈希表，`HsahMap<String, String>`
+    实现 通过commitID的前6位 来checkout：额外维护一个哈希表`HsahMap<String, String>`
     ```
    HashMap<String, String>
     a0da1e->
@@ -175,63 +175,80 @@ HashSet<Blob> addition;
 
 12. merge
 
-     *Usage*: `java gitlet.Main merge [branch name]`
+      *Usage*: `java gitlet.Main merge [branch name]`
 
-     `@param branch name:给定分支`
+      			@param branch name:给定分支
 
-     描述：将给定分支的文件合并到当前分支
+      描述：将给定分支的文件合并到当前分支
 
-     *分割点((Split point)*：两个分支 `headCommit`的最近公共祖先
+      *分割点((Split point)*：两个分支 `headCommit`的最近公共祖先
 
-     进行合并操作前，先进行检查：
+      进行合并操作前，先进行检查：
 
-     ```mathematica
-           A --- B --- C  (master)
-                \
-                 D --- E  (feature)
-     ```
+      ```mathematica
+            A --- B --- C  (master)
+                 \
+                  D --- E  (feature)
+      ```
 
-     否则，执行以下步骤
+     两个Commit的最近公共祖先为分割点
 
-     1. 如果某个文件在给定分支被修改过，但在当前分支未被修改，则将给定分支的`headCommit`中`checkout`该文件，并自动暂存[检查文件是否被修改可比较其SHA-1 code]
+     1. 如果分割点是与给定分支相同的提交（例如提交 E），则说明给定分支已经包含了当前分支的所有内容，合并已经完成，无需执行任何操作。
+     2. 
 
-     2. 在当前分支被修改过的文件，如果不在给定分支中，保持不变(还放在当前分支)
+     
 
-     3. 任何在当前分支和给定分支中以相同方式修改的文件（即，现在两个文件具有相同的内容或都已被删除）在合并时保持不变。
+      否则，执行以下步骤
 
-        如果一个文件被两个分支都删除，但工作区内有一个同名文件，保持其未跟踪状态
+      1. 如果某个文件在给定分支被修改过，但在当前分支未被修改，则将给定分支的`headCommit`中`checkout`该文件，并自动暂存[检查文件是否被修改可比较其SHA-1 code]
 
-     4. 不在分割点，只在当前分支的文件保持不变
+      2. 在当前分支被修改过的文件，如果不在给定分支中，保持不变(还放在当前分支)
 
-     5. 不在分割点，只在给定分支的文件应该被`checkout`并加入暂存区
+      3. 任何在当前分支和给定分支中以相同方式修改的文件（即，现在两个文件具有相同的内容或都已被删除）在合并时保持不变。
 
-     6. 在分割点，当前分支未修改过，但在给定分支中被删除的文件应该被删除并取消追踪
+         如果一个文件被两个分支都删除，但工作区内有一个同名文件，保持其未跟踪状态
 
-     7. 在分割点，给定分支未修改过，但在当前分支被删除的文件应该保持不变(merge后无此文件)
+      4. 不在分割点，只在当前分支的文件保持不变
 
-     8. 在当前分支和给定分支 以不同方式修改的文件被认为是*冲突(conflict)*，有以下几种情况
+      5. 不在分割点，只在给定分支的文件应该被`checkout`并加入暂存区
 
-        - 都被修改，但内容不同
-        - 在一个分支修改，另一个分支删除
-        - 在分割点不存在，但在当前分支和给定分支中有不同内容
+      6. 在分割点，当前分支未修改过，但在给定分支中被删除的文件应该被删除并取消追踪
 
-        这种情况下，将冲突部分替换为
+      7. 在分割点，给定分支未修改过，但在当前分支被删除的文件应该保持不变(merge后无此文件)
 
-         ```
-        <<<<<<< HEAD
-        contents of file in current branch
-        =======
-        contents of file in given branch
-        >>>>>>>
-         ```
+      8. 在当前分支和给定分支 以不同方式修改的文件被认为是*冲突(conflict)*，有以下几种情况
 
-     所有文件都被更新后，分割点不是两个分支的头，merge操作会自动提交commit`Merged [given branch name] into [current branch name].`到log 如果merge遇到了冲突，输出信息`Encountered a merge conflict.` 到终端。
+         - 都被修改，但内容不同
+         - 在一个分支修改，另一个分支删除
+         - 在分割点不存在，但在当前分支和给定分支中有不同内容
 
-     合并提交与其他提交不同：它们将当前分支的头（称为第一个父级）和命令行上给出的要合并的分支的头记录为父级。
+         这种情况下，将冲突部分替换为
 
-     *失败情况*：
+          ```
+         <<<<<<< HEAD
+         contents of file in current branch
+         =======
+         contents of file in given branch
+         >>>>>>>
+          ```
 
-     ​	
+      所有文件都被更新后，分割点不是两个分支的头，merge操作会自动提交commit`Merged [given branch name] into [current branch name].`到log 如果merge遇到了冲突，输出信息`Encountered a merge conflict.` 到终端。
+
+      合并提交与其他提交不同：它们将当前分支的头（称为第一个父级）和命令行上给出的要合并的分支的头记录为父级。
+
+      *失败情况*： PASS
+
+     
+
+     实现思路
+
+     1. `Utils.java` 实现 `public Commit LCA(Commit a, Commit b);` 返回`CommitTree`上两个`Commit`的最近公共祖先
+        - LCA：
+          1. 倍增 O(logn)
+          2. dfs O(n) 由于文档要求复杂度为O(NlogN),使用此方法
+        - 
+
+      ​	
 
 13. 
 

@@ -28,6 +28,7 @@ public class CommitTree implements Serializable {
     }
     /**
      * read branch from file and save to this
+     * promise to get latest branch
      * */
     public branch getCurrentBranch() {
         this.currentBranch = Utils.readObject(Utils.join(Repository.Branch_DIR, currentBranchName), branch.class);
@@ -60,7 +61,7 @@ public class CommitTree implements Serializable {
         size += 1;
 
         getCurrentBranch();
-        this.currentBranch.headCommitID = head.val.hashcode();
+        this.currentBranch.commitList.add(head.val.hashcode());
         saveCurrentBranch();
 
         return true;
@@ -113,7 +114,7 @@ public class CommitTree implements Serializable {
      * */
     public Commit getHeadCommit() {
 //        return this.head.val;
-        return Utils.readObject(Utils.join(Repository.Commit_DIR, this.currentBranch.headCommitID), Commit.class);
+        return this.currentBranch.getHeadCommit();
     }
     public int size(){return this.size;}
 

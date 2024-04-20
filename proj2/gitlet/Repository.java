@@ -89,7 +89,7 @@ public class Repository {
 
         //create a default master
         branch master = new branch(commit.hashcode(), "master");
-        File newBranchFile = join(Branch_DIR, master.getbranchName());
+        File newBranchFile = join(Branch_DIR, master.getBranchName());
         writeObject(newBranchFile, master);
 
         commitTree.setCurrentBranch("master");
@@ -186,6 +186,8 @@ public class Repository {
         for(Blob b : removedStagingArea) {
             Utils.restrictedDelete(b.getFile());
         }
+
+
 
         commitTree.add_Commit(newCommit);
         writeObject(CommitTree_DIR_File, commitTree);
@@ -342,7 +344,7 @@ public class Repository {
         List<String> branchList= plainFilenamesIn(Branch_DIR);
         branch currentBranch = commitTree.getCurrentBranch();
         for(String branch : Objects.requireNonNull(branchList)) {
-            if (branch.equals(currentBranch.getbranchName())) {
+            if (branch.equals(currentBranch.getBranchName())) {
                 message("*", branch);
             } else {
                 message(branch);
@@ -441,7 +443,7 @@ public class Repository {
 
         //case 3
         String branchName = args[1];
-        if (branchName.equals(commitTree.getCurrentBranch().getbranchName())) {
+        if (branchName.equals(commitTree.getCurrentBranch().getBranchName())) {
             message("No need to checkout the current branch.");
             exit(0);
         } else {
@@ -549,7 +551,25 @@ public class Repository {
         }
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         branch currentBranch = commitTree.getCurrentBranch();
-        currentBranch.setHeadCommitID(commitID);
+        // remove other commits
+        List<String> commitList = currentBranch.commitList;
+        for(int index = commitList.size() -1; index >=0; index--) {
+            if(commitList.get(index).equals(commitID)) {
+                break;
+            } else {
+                commitList.remove(index);
+            }
+        }
+        writeObject(join(Branch_DIR, currentBranch.getBranchName()), currentBranch);
+
+    }
+
+    /**
+     * Command Merge
+     * details are shown in /gitlet-design.md
+     * @param _branch branch to be merged to current branch
+     * */
+    public static void merge(branch _branch) {
 
     }
 

@@ -249,6 +249,12 @@ class Utils {
         }
         return true;
     }
+    /**
+     *
+     * @return a LCA Commit
+     * */
+    public static Commit getSplitPoint(Commit a, Commit b) {
 
+    }
 
 }
