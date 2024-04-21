@@ -3,6 +3,9 @@ package gitlet;
 import java.io.Serializable;
 import java.util.*;
 
+import static gitlet.Repository.*;
+import static gitlet.Utils.*;
+
 
 /**
  * represent the structure of commit
@@ -25,6 +28,21 @@ public class CommitTree implements Serializable {
     public void setCurrentBranch(String currentBranchName) {
         this.currentBranchName = currentBranchName;
         getCurrentBranch();
+        //TODO: bug: after changeing branch,head node has not changed yet
+        List<String> commitList = this.currentBranch.commitList;
+        this.head = getNodebyCommit(root, readObject(join(Commit_DIR, commitList.get(commitList.size() -1)),Commit.class));
+    }
+    private CTreeNode getNodebyCommit(CTreeNode node,Commit commit) {
+        if (node.val.hashcode().equals(commit.hashcode())) {
+            return node;
+        }
+        if (node == null || node.children == null) {
+            return null;
+        }
+        for(CTreeNode child : node.children) {
+            return getNodebyCommit(child, commit);
+        }
+        return null;
     }
     /**
      * read branch from file and save to this
@@ -109,11 +127,12 @@ public class CommitTree implements Serializable {
         }
     }
 
+
+
     /**
      * 获取当前分支的headCommit
      * */
     public Commit getHeadCommit() {
-//        return this.head.val;
         return this.currentBranch.getHeadCommit();
     }
     public int size(){return this.size;}

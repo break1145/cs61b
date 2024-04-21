@@ -81,6 +81,7 @@ public class Repository {
         HashSet<Blob> removedStagingArea = new HashSet<>();
         HashSet<Blob> additionArea = new HashSet<>();
         HashMap<String, String> commitPrefixMap = new HashMap<>();
+        writeObject(Commit_Prefix_Map_File, commitPrefixMap);
 
         // make first commit
         Commit commit = new Commit("initial commit");
@@ -88,7 +89,7 @@ public class Repository {
         commit.save();
 
         //create a default master
-        branch master = new branch(commit.hashcode(), "master");
+        branch master = new branch("master", commit.hashcode());
         File newBranchFile = join(Branch_DIR, master.getBranchName());
         writeObject(newBranchFile, master);
 
@@ -518,7 +519,7 @@ public class Repository {
      * */
     public static void branch(String branchName) {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        branch newBranch = new branch(commitTree.getHeadCommit().getHashCode(), branchName);
+        branch newBranch = new branch(branchName, commitTree.getHeadCommit().getHashCode());
         writeObject(join(Branch_DIR, branchName), newBranch);
     }
 
