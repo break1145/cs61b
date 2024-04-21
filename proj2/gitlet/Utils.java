@@ -6,9 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.List;
+import java.util.*;
+
+import static gitlet.Repository.*;
 
 
 /** Assorted utilities.
@@ -253,8 +253,27 @@ class Utils {
      *
      * @return a LCA Commit
      * */
-    public static Commit getSplitPoint(Commit a, Commit b) {
+    public static Commit getSplitPoint(String branchA, String branchB) {
+        branch bA = readObject(join(Branch_DIR, branchA), branch.class);
+        branch bB = readObject(join(Branch_DIR, branchB), branch.class);
+        List<String> bA_Commits = bA.commitList;
+        List<String> bB_Commits = bB.commitList;
+        Collections.reverse(bA_Commits);
+        Collections.reverse(bB_Commits);
 
+        // use a map to avoid nested loop
+        Map<String, Integer> ba_Map = new HashMap<>();
+        for(int i = 0;i < bA_Commits.size();i++) {
+            ba_Map.put(bA_Commits.get(i), i);
+        }
+        for(String itemB : bB_Commits) {
+            if(ba_Map.containsKey(itemB)) {
+                System.out.println(ba_Map.get(itemB));
+                return readObject(join(Commit_DIR, itemB), Commit.class);
+            }
+        }
+        // not found
+        return null;
     }
 
 }
