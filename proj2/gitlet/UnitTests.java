@@ -1,11 +1,11 @@
 package gitlet;
 
 
+import org.checkerframework.checker.units.qual.C;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
@@ -122,59 +122,43 @@ public class UnitTests {
 
     }
 
+
+    /**
+     * algorithm is ok
+     * */
     @Test
-    public void testLCA(){
-        initialize();
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        commitTree.setCurrentBranch("master");
-        // case0
-        commitTree.add_Commit(new Commit("0   commit"));
-        commitTree.add_Commit(new Commit("1st commit"));
-        Commit commit2 = new Commit("2nd commit");
-        commitTree.add_Commit(commit2);
-        //branch newBranch = new branch("newB", commit2.getHashCode());
+    public void testLCA() {
+        List<String> a = new ArrayList<>();
+        List<String> b = new ArrayList<>();
 
-        branch("newB");
-        commitTree.setCurrentBranch("newB");
-        commitTree.add_Commit(new Commit("3rd commit"));
-        branch newB = readObject(join(Branch_DIR, "newB"), branch.class);
-//        message(commitTree.getHeadCommit().getHashCode());
-//        message(newB.getStartCommitID());
-        commitTree.add_Commit(new Commit("4th commit"));
-        commitTree.add_Commit(new Commit("5th commit"));
-        commitTree.setCurrentBranch("master");
-        commitTree.add_Commit(new Commit("6th commit"));
-        commitTree.add_Commit(new Commit("7th commit"));
-
-
-        Commit LCA = getSplitPoint("master", "newB");
-        System.out.println("");
-        message(LCA.getMessage());
-        message(LCA.getHashCode());
-        commitTree.printTree();
-
-    }
-    @Test
-    public void testLCA2(){
-        Commit LCA = getSplitPoint("master", "newB");
-        message(LCA.getMessage());
-        message(LCA.getHashCode());
-        message("");
-        branch master = readObject(join(Branch_DIR, "master"), branch.class);
-        branch newB = readObject(join(Branch_DIR, "newB"), branch.class);
-        for(String item: master.commitList) {
-            message(item);
+        a.add("1");
+        a.add("2");
+        a.add("3");
+        b = new ArrayList<>(a);
+        a.add("4");
+        a.add("5");
+        b.add("6");
+        b.add("7");
+        Collections.reverse(a);
+        Collections.reverse(b);
+        Map<String, Integer> ba_Map = new HashMap<>();
+        for(int i = 0;i < a.size();i++) {
+            ba_Map.put(a.get(i), i);
         }
-        message("");
-        for(String item: newB.commitList) {
-            message(item);
+        System.out.println(ba_Map);
+        for(String itemB : b) {
+            System.out.println(itemB);
+            if(ba_Map.containsKey(itemB)) {
+                System.out.println(itemB);
+                break;
+            }
         }
-        message("");
-
-        message(master.getStartCommitID());
-        message(newB.getStartCommitID());
+        /**
+         * 1 -> 2 -> 3 -> 4 -> 5    b1
+         *            \
+         *              6 -> 7      b2
+         * */
     }
-
 }
 
 

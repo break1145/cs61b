@@ -281,7 +281,7 @@ class Utils {
         }
         for(String itemB : bB_Commits) {
             if(ba_Map.containsKey(itemB)) {
-                System.out.println(ba_Map.get(itemB));
+//                System.out.println(itemB);
                 return readObject(join(Commit_DIR, itemB), Commit.class);
             }
         }
