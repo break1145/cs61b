@@ -1,5 +1,7 @@
 package gitlet;
 
+import net.sf.saxon.trans.SymbolicName;
+
 import java.io.File;
 import java.util.*;
 
@@ -590,8 +592,94 @@ public class Repository {
             return;
         }
 
-
         // merge
+        // build Map<File, Blob> for compare file content in three commits:split,current and given
+        Commit currentHead = commitTree.getHeadCommit();
+        Commit givenHead = givenBranch.getHeadCommit();
+        Map<File, Blob> curnt_map = buildMapforMerge(currentHead);
+        Map<File, Blob> given_map = buildMapforMerge(givenHead);
+        Map<File, Blob> split_map = buildMapforMerge(splitPoint);
+
+        Set<Blob> result = new HashSet<>();
+
+        for(File file : split_map.keySet()) {
+            Blob split = split_map.get(file);
+            Blob curnt = curnt_map.get(file);
+            Blob given = given_map.get(file);
+
+            // if current or given branch doesn't have file
+            if (given == null && curnt != null) {
+                // in split not in given
+                if (split.getContent().equals(curnt.getContent())) {
+                    // case 6
+                    curnt_map.remove(file);
+                    continue;
+                } else {
+                    // case 2
+                    result.add(curnt);
+                    curnt_map.remove(file);
+                    continue;
+                }
+            } else if (curnt == null && given != null) {
+                // in split not in current
+                if(given.getContent().equals(split.getContent())) {
+                    // case 7
+                    given_map.remove(file);
+                    continue;
+                } else {
+                    // in split,given deleted from current
+                    // TODO:conflict
+                }
+            } else if (given == null && split == null) {
+                // not in split or current
+                continue;
+            }
+            // case1
+            if (split.getContent().equals(curnt.getContent()) && !given.getContent().equals(curnt.getContent())) {
+                result.add(given);
+                given_map.remove(file);
+                continue;
+            }
+            // case3
+            if (split.getContent().equals(curnt.getContent()) && given.getContent().equals(curnt.getContent())) {
+                result.add(given);
+                given_map.remove(file);
+                curnt_map.remove(file);
+                continue;
+            }
+        }
+
+        // case when file not in split
+        for(File file : curnt_map.keySet()) {
+            Blob curnt = curnt_map.get(file);
+            Blob given = given_map.get(file);
+            if(given == null) {
+                // case 4
+                result.add(curnt);
+                curnt_map.remove(file);
+            }
+        }
+        for(File file : given_map.keySet()) {
+            Blob given = given_map.get(file);
+            Blob curnt = curnt_map.get(file);
+            if (curnt == null) {
+                //case 5
+                result.add(given);
+                given_map.remove(file);
+            }
+        }
+        //TODO: deal with case 8
+        //TODO: checkout files in set result
+
+
+
+    }
+    private static Map<File, Blob> buildMapforMerge(Commit commit) {
+        Map<File, Blob> result_map = new HashMap<>();
+        for(Blob b : commit.files) {
+            result_map.put(b.getFile(), b);
+        }
+        return result_map;
     }
 
 }
