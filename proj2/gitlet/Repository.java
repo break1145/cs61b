@@ -336,6 +336,7 @@ public class Repository {
      * 5. TODO:untracked files
      * */
     public static void status() {
+        //TODO: method has not been check after other method changing
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
@@ -549,7 +550,7 @@ public class Repository {
         Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
         if(commit.files != null) {
             for(Blob b : commit.files) {
-                checkout(new String[]{commitID, "--", b.getFile().getName()});
+                checkout(new String[]{"", commitID, "--", b.getFile().getName()});
             }
         }
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
@@ -570,10 +571,27 @@ public class Repository {
     /**
      * Command Merge
      * details are shown in /gitlet-design.md
-     * @param _branch branch to be merged to current branch
+     * @param givenBranch branch to be merged to current branch
      * */
-    public static void merge(branch _branch) {
+    public static void merge(branch givenBranch) {
+        // check before merge
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        branch currentBranch = commitTree.getCurrentBranch();
+        Commit splitPoint = getSplitPoint(currentBranch.getBranchName(), givenBranch.getBranchName());
+        if (splitPoint.equals(currentBranch.getHeadCommit()) && splitPoint.equals(givenBranch.getHeadCommit())) {
+            // two same branches
+            message("Given branch is an ancestor of the current branch.");
+            return;
+        }
+        if (splitPoint.equals(currentBranch.getHeadCommit())) {
+            // given branch fast-forward
+            checkout(new String[]{"", givenBranch.getBranchName()});
+            message("Current branch fast-forwarded.");
+            return;
+        }
 
+
+        // merge
     }
 
 }
