@@ -28,9 +28,12 @@ public class CommitTree implements Serializable {
     public void setCurrentBranch(String currentBranchName) {
         this.currentBranchName = currentBranchName;
         getCurrentBranch();
-        //TODO: bug: after changeing branch,head node has not changed yet
         List<String> commitList = this.currentBranch.commitList;
         this.head = getNodebyCommit(root, readObject(join(Commit_DIR, commitList.get(commitList.size() -1)),Commit.class));
+        if (head == null) {
+            throw new RuntimeException("No commit found in CommitTree");
+        }
+
     }
     private CTreeNode getNodebyCommit(CTreeNode node,Commit commit) {
         if (node.val.hashcode().equals(commit.hashcode())) {
@@ -45,7 +48,7 @@ public class CommitTree implements Serializable {
         return null;
     }
     /**
-     * read branch from file and save to this
+     * read branch from file and update to commitTree
      * promise to get latest branch
      * */
     public branch getCurrentBranch() {
@@ -78,6 +81,7 @@ public class CommitTree implements Serializable {
         head = newNode;
         size += 1;
 
+        // add commit to current branch
         getCurrentBranch();
         this.currentBranch.commitList.add(head.val.hashcode());
         saveCurrentBranch();

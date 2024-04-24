@@ -249,6 +249,18 @@ class Utils {
         }
         return true;
     }
+
+    public static void printCommit(Commit commit) {
+        message("===");
+        message("commit "+ commit.hashcode());
+        Formatter formatter = new Formatter(Locale.ENGLISH);
+        Date currentDate = commit.getCurrentDate();
+        String formattedDate = String.valueOf(formatter.format("Date: %ta %tb %td %tT %tY %tz", currentDate, currentDate, currentDate, currentDate, currentDate, currentDate));
+        message(formattedDate);
+        message(commit.getMessage());
+        message("");
+    }
+
     /**
      *
      * @return a LCA Commit
@@ -256,8 +268,9 @@ class Utils {
     public static Commit getSplitPoint(String branchA, String branchB) {
         branch bA = readObject(join(Branch_DIR, branchA), branch.class);
         branch bB = readObject(join(Branch_DIR, branchB), branch.class);
-        List<String> bA_Commits = bA.commitList;
-        List<String> bB_Commits = bB.commitList;
+        // use new to avoid changing original list
+        List<String> bA_Commits = new ArrayList<>(bA.commitList);
+        List<String> bB_Commits = new ArrayList<>(bB.commitList);
         Collections.reverse(bA_Commits);
         Collections.reverse(bB_Commits);
 

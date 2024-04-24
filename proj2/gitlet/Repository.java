@@ -89,7 +89,7 @@ public class Repository {
         commit.save();
 
         //create a default master
-        branch master = new branch("master", commit.hashcode());
+        branch master = new branch("master", null);
         File newBranchFile = join(Branch_DIR, master.getBranchName());
         writeObject(newBranchFile, master);
 
@@ -278,31 +278,31 @@ public class Repository {
 
     /**
      * command log
-     * 利用commitTree中的方法打印从head到初始commit的log
+     * print current branch's commit history
      * */
     public static void log() {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        commitTree.printTreefromHead();
+        branch currentBranch = commitTree.getCurrentBranch();
+        List<String> commitList = new ArrayList<>(currentBranch.commitList);
+        Collections.reverse(commitList);
+        for(String commitID : commitList) {
+            Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
+            if(commit != null) {
+                printCommit(commit);
+            }
+        }
     }
 
     /**
      * command global_log
-     * usage Utils.plainFilenamesIn(),traverse all commit in folder commit
+     * use method: Utils.plainFilenamesIn(),traverse all commit in folder commit
      * */
     public static void global_log() {
         List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
         for(String commitID : commitList) {
-            Commit currentCommit = readObject(join(Commit_DIR, commitID), Commit.class);
-            System.out.println("===");
-            System.out.println("Commit " + currentCommit.getHashCode());
-            Formatter formatter = new Formatter(Locale.ENGLISH);
-            Date currentDate = new Date();
-            String formattedDate = String.valueOf(formatter.format("Date: %ta %tb %td %tT %tY %tz", currentDate, currentDate, currentDate, currentDate, currentDate, currentDate));
-            Utils.message(formattedDate);
-            System.out.println(currentCommit.getMessage());
-            System.out.println();
+            Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
+            printCommit(commit);
         }
-
     }
 
     /**
@@ -519,7 +519,7 @@ public class Repository {
      * */
     public static void branch(String branchName) {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        branch newBranch = new branch(branchName, commitTree.getHeadCommit().getHashCode());
+        branch newBranch = new branch(branchName, commitTree.getCurrentBranch().getBranchName());
         writeObject(join(Branch_DIR, branchName), newBranch);
     }
 
