@@ -24,6 +24,10 @@ public class branch implements Serializable {
             this.commitList = new ArrayList<>(parentBranch.commitList);
         }
     }
+    public branch(String branchName, List<String> commitList) {
+        this.branchName = branchName;
+        this.commitList = commitList;
+    }
     public String getBranchName() {
         return branchName;
     }

@@ -89,7 +89,9 @@ public class Repository {
         commit.save();
 
         //create a default master
-        branch master = new branch("master", null);
+        List<String> defaultList = new ArrayList<>();
+        defaultList.add(commit.hashcode());
+        branch master = new branch("master", defaultList);
         File newBranchFile = join(Branch_DIR, master.getBranchName());
         writeObject(newBranchFile, master);
 
