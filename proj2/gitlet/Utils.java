@@ -185,14 +185,14 @@ class Utils {
     /* OTHER FILE UTILITIES */
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
-     *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
+     *  analogous to the {@link java.nio.file.Paths#get(String, String[])}
      *  method. */
     static File join(String first, String... others) {
         return Paths.get(first, others).toFile();
     }
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
-     *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
+     *  analogous to the {@link java.nio.file.Paths#get(String, String[])}
      *  method. */
     static File join(File first, String... others) {
         return Paths.get(first.getPath(), others).toFile();
@@ -293,13 +293,10 @@ class Utils {
 
 
     /**
-     *
+     *TODO: PASS
      * */
     public static List diffContentbyLine (byte[] content1, byte[] content2) {
-//        List<String> result1 = new ArrayList<>();
-//        List<String> result2 = new ArrayList<>();
-        List<pair<String, Integer>> result1 = new ArrayList<>();
-        List<pair<String, Integer>> result2 = new ArrayList<>();
+
 
         try (
             ByteArrayInputStream bais1 = new ByteArrayInputStream(content1);
@@ -311,42 +308,56 @@ class Utils {
         ){
             String line1;
             String line2;
+
+            List<String> conflictArea1 = new ArrayList<>();
+            List<String> conflictArea2 = new ArrayList<>();
+
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
             // add to result if one line is differ from the other
             int currentLine = 0;
             while ((line1 = br1.readLine()) != null && (line2 = br2.readLine()) != null) {
-                if (!line1.equals(line2)) {
-                    result1.add(new pair<>(line1, currentLine));
-                    result2.add(new pair<>(line2, currentLine));
+                if (line1.equals(line2)) {
+                    // no change: add line to result
+                    byte[] tmp = writeLinetoBottom(result.toByteArray(), line1);
+                    result.reset();
+                    result.writeBytes(tmp);
+                    continue;
                 }
+                while(!line1.equals(line2) && ((line1 = br1.readLine()) != null && (line2 = br2.readLine()) != null)) {
+                    /** if line1 != line2: stage lines in conflictArea
+                     * until line1 == line2,take them all out and regard these as conflict*/
+                    conflictArea1.add(line1);
+                    conflictArea2.add(line2);
+                    currentLine++;
+                }
+                //TODO: write conflictArea out and clear the area,continue dealing with left file
+                //diff is too difficult!!!!!
+
+                conflictArea1.clear();
+                conflictArea2.clear();
+
                 currentLine++;
             }
         } catch (IOException ex) {
-            message("Error reading file");
+            message("Error in dealing with file");
         }
 
-        List<List<pair<String, Integer>>> result = new ArrayList<>();
-        result.add(result1);
-        result.add(result2);
-        return result;
+        return null;
     }
 
-    public static byte[] diff(byte[] content1, byte[] content2) {
-        // TODO
-        List<List<pair<String, Integer>>> compared = diffContentbyLine(content1, content2);
+    /**
+     * write a String to content's bottom
+     * @return a byte array after editing
+     * */
+    public static byte[] writeLinetoBottom(byte[] content, String line) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (
-            OutputStreamWriter osw = new OutputStreamWriter(baos);
-
-        ) {
-            for (pair<String, Integer> pair : compared.get(0)) {
-                osw.write("xxx\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        baos.writeBytes(content);
+        // write string and '\n'
+        baos.writeBytes(line.getBytes());
+        baos.writeBytes(System.lineSeparator().getBytes());
         return baos.toByteArray();
     }
+
     public static class pair<A, B> {
         public final A first;
         public final B second;
