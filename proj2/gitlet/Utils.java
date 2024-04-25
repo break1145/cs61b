@@ -295,54 +295,16 @@ class Utils {
     /**
      *TODO: PASS
      * */
-    public static List diffContentbyLine (byte[] content1, byte[] content2) {
-
-
-        try (
-            ByteArrayInputStream bais1 = new ByteArrayInputStream(content1);
-            ByteArrayInputStream bais2 = new ByteArrayInputStream(content2);
-            InputStreamReader isr1 = new InputStreamReader(bais1);
-            InputStreamReader isr2 = new InputStreamReader(bais2);
-            BufferedReader br1 = new BufferedReader(isr1);
-            BufferedReader br2 = new BufferedReader(isr2);
-        ){
-            String line1;
-            String line2;
-
-            List<String> conflictArea1 = new ArrayList<>();
-            List<String> conflictArea2 = new ArrayList<>();
-
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            // add to result if one line is differ from the other
-            int currentLine = 0;
-            while ((line1 = br1.readLine()) != null && (line2 = br2.readLine()) != null) {
-                if (line1.equals(line2)) {
-                    // no change: add line to result
-                    byte[] tmp = writeLinetoBottom(result.toByteArray(), line1);
-                    result.reset();
-                    result.writeBytes(tmp);
-                    continue;
-                }
-                while(!line1.equals(line2) && ((line1 = br1.readLine()) != null && (line2 = br2.readLine()) != null)) {
-                    /** if line1 != line2: stage lines in conflictArea
-                     * until line1 == line2,take them all out and regard these as conflict*/
-                    conflictArea1.add(line1);
-                    conflictArea2.add(line2);
-                    currentLine++;
-                }
-                //TODO: write conflictArea out and clear the area,continue dealing with left file
-                //diff is too difficult!!!!!
-
-                conflictArea1.clear();
-                conflictArea2.clear();
-
-                currentLine++;
-            }
-        } catch (IOException ex) {
-            message("Error in dealing with file");
-        }
-
-        return null;
+    public static byte[] mergeFilewithConflict (byte[] content1, byte[] content2) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.writeBytes("<<<<<<< HEAD".getBytes());
+        baos.writeBytes(System.lineSeparator().getBytes());
+        baos.writeBytes(content1);
+        baos.writeBytes("=======".getBytes());
+        baos.writeBytes(System.lineSeparator().getBytes());
+        baos.writeBytes(content2);
+        baos.writeBytes(">>>>>>>".getBytes());
+        return baos.toByteArray();
     }
 
     /**

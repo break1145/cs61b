@@ -72,9 +72,6 @@ public class UnitTests {
         HashSet<String> code = head.filesCode;
 
         System.out.println(head.filesCode);
-
-//        HashSet<String> code = head.filesCode;
-
         for(String s : code) {
             Blob b = readObject(join(Files_DIR, s), Blob.class);
             writeContents(join(CWD, "testReadFile.md"), b.getContent());
@@ -160,19 +157,19 @@ public class UnitTests {
          * */
     }
     @Test
-    public void testReadFilebyLine() {
+    public void testMergeFile() {
         Blob blob1 = new Blob(join(CWD, "testFile1.md"));
         Blob blob2 = new Blob(join(CWD, "testFile2.md"));
-        List<List<pair<String, Integer>>> result = Utils.readContentbyLine(blob1.getContent(), blob2.getContent());
-        List<pair<String, Integer>> res1 = result.get(0);
-        List<pair<String, Integer>> res2 = result.get(1);
-        for(int i = 0;i < res1.size();i++) {
-//            System.out.println(i);
-            System.out.println("File1: " + res1.get(i).first + " in Line" + res1.get(i).second);
-            System.out.println("File2: " + res2.get(i).first + " in Line" + res2.get(i).second);
-        }
+        byte[] content = mergeFilewithConflict(blob1.getContent(), blob2.getContent());
+        writeContents(join(CWD, "testFile1.md"),content);
 
 
+
+    }
+    @Test
+    public void testWriteFiletoBottom() {
+        Blob blob1 = new Blob(join(CWD, "testFile1.md"));
+        writeContents(join(CWD, "testFile1.md"),writeLinetoBottom(blob1.getContent(), "edit!"));
     }
 }
 
