@@ -1,5 +1,7 @@
 package gitlet;
 
+import jdk.jshell.spi.ExecutionControl;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -289,4 +291,70 @@ class Utils {
         return null;
     }
 
+
+    /**
+     *
+     * */
+    public static List diffContentbyLine (byte[] content1, byte[] content2) {
+//        List<String> result1 = new ArrayList<>();
+//        List<String> result2 = new ArrayList<>();
+        List<pair<String, Integer>> result1 = new ArrayList<>();
+        List<pair<String, Integer>> result2 = new ArrayList<>();
+
+        try (
+            ByteArrayInputStream bais1 = new ByteArrayInputStream(content1);
+            ByteArrayInputStream bais2 = new ByteArrayInputStream(content2);
+            InputStreamReader isr1 = new InputStreamReader(bais1);
+            InputStreamReader isr2 = new InputStreamReader(bais2);
+            BufferedReader br1 = new BufferedReader(isr1);
+            BufferedReader br2 = new BufferedReader(isr2);
+        ){
+            String line1;
+            String line2;
+            // add to result if one line is differ from the other
+            int currentLine = 0;
+            while ((line1 = br1.readLine()) != null && (line2 = br2.readLine()) != null) {
+                if (!line1.equals(line2)) {
+                    result1.add(new pair<>(line1, currentLine));
+                    result2.add(new pair<>(line2, currentLine));
+                }
+                currentLine++;
+            }
+        } catch (IOException ex) {
+            message("Error reading file");
+        }
+
+        List<List<pair<String, Integer>>> result = new ArrayList<>();
+        result.add(result1);
+        result.add(result2);
+        return result;
+    }
+
+    public static byte[] diff(byte[] content1, byte[] content2) {
+        // TODO
+        List<List<pair<String, Integer>>> compared = diffContentbyLine(content1, content2);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (
+            OutputStreamWriter osw = new OutputStreamWriter(baos);
+
+        ) {
+            for (pair<String, Integer> pair : compared.get(0)) {
+                osw.write("xxx\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return baos.toByteArray();
+    }
+    public static class pair<A, B> {
+        public final A first;
+        public final B second;
+
+        public pair(A first, B second) {
+            this.first = first;
+            this.second = second;
+        }
+    }
 }
+
