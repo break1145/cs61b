@@ -329,5 +329,19 @@ class Utils {
             this.second = second;
         }
     }
+
+    /**
+     * merge utils
+     * - buildMapformCommit
+     * -
+     * -
+     * */
+    public static Map<File, Blob> buildMapformCommit(Commit commit) {
+        Map<File, Blob> result_map = new HashMap<>();
+        for(Blob b : commit.files) {
+            result_map.put(b.getFile(), b);
+        }
+        return result_map;
+    }
 }
 
