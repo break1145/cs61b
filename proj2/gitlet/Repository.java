@@ -591,96 +591,87 @@ public class Repository {
             message("Current branch fast-forwarded.");
             return;
         }
-
         // merge
         // build Map<File, Blob> for compare file content in three commits:split,current and given
         Commit currentHead = commitTree.getHeadCommit();
         Commit givenHead = givenBranch.getHeadCommit();
-        Map<File, Blob> curnt_map = buildMapforMerge(currentHead);
-        Map<File, Blob> given_map = buildMapforMerge(givenHead);
-        Map<File, Blob> split_map = buildMapforMerge(splitPoint);
-
+        Map<File, Blob> curnt_map = buildMapformCommit(currentHead);
+        Map<File, Blob> given_map = buildMapformCommit(givenHead);
+        Map<File, Blob> split_map = buildMapformCommit(splitPoint);
         Set<Blob> result = new HashSet<>();
+        Set<File> deleted = new HashSet<>();
 
-        for(File file : split_map.keySet()) {
-            Blob split = split_map.get(file);
-            Blob curnt = curnt_map.get(file);
-            Blob given = given_map.get(file);
+        Map<File, Blob> uniteMap = new HashMap<>();
+        uniteMap.putAll(curnt_map);
+        uniteMap.putAll(given_map);
+        uniteMap.putAll(split_map);
 
-            // if current or given branch doesn't have file
-            if (given == null && curnt != null) {
-                // in split not in given
-                if (split.getContent().equals(curnt.getContent())) {
-                    // case 6
-                    curnt_map.remove(file);
+        for(File item : uniteMap.keySet()) {
+            Blob a = curnt_map.get(item);
+            Blob b = given_map.get(item);
+            Blob s = split_map.get(item);
+            if (curnt_map.containsKey(item) && given_map.containsKey(item) && split_map.containsKey(item)) {
+                // exist in all the commits:
+                if (!a.equals(b)) {
+                    if (a.equals(s)) {
+                        // case 1:
+                        result.add(b);
+                    } else if (b.equals(s)) {
+                        // case 2:
+                        result.add(a);
+                    }
                     continue;
-                } else {
-                    // case 2
-                    result.add(curnt);
-                    curnt_map.remove(file);
-                    continue;
+                } else if (!a.equals(s) && !b.equals(s) && !a.equals(b)) {
+                    // case 8.1 : file changed by different ways:
+                    //TODO: fill in codes with conflict
                 }
-            } else if (curnt == null && given != null) {
-                // in split not in current
-                if(given.getContent().equals(split.getContent())) {
-                    // case 7
-                    given_map.remove(file);
-                    continue;
+            } else if (!split_map.containsKey(item)) {
+                // not exist in split point
+                if (b == null) {
+                    // case 4
+                    result.add(a);
+                } else if (a == null) {
+                    // case 5
+                    result.add(b);
+                } else if (a != null && b != null && !a.equals(b)) {
+                    // case 8.3 : not in split point but have different content
+                    //TODO: conflict
                 } else {
-                    // in split,given deleted from current
-                    // TODO:conflict
+                    // case 3
+                    result.add(a);
                 }
-            } else if (given == null && split == null) {
-                // not in split or current
-                continue;
-            }
-            // case1
-            if (split.getContent().equals(curnt.getContent()) && !given.getContent().equals(curnt.getContent())) {
-                result.add(given);
-                given_map.remove(file);
-                continue;
-            }
-            // case3
-            if (split.getContent().equals(curnt.getContent()) && given.getContent().equals(curnt.getContent())) {
-                result.add(given);
-                given_map.remove(file);
-                curnt_map.remove(file);
-                continue;
+            } else if (split_map.containsKey(item) && (a == null || b == null)) {
+                if (a != null && a.equals(s)) {
+                    deleted.add(item);
+                } else if (b != null && b.equals(s)) {
+                    deleted.add(item);
+                } else {
+                    //TODO: conflict
+                }
+            } else {
+                // both deleted in two branches
+
             }
         }
-
-        // case when file not in split
-        for(File file : curnt_map.keySet()) {
-            Blob curnt = curnt_map.get(file);
-            Blob given = given_map.get(file);
-            if(given == null) {
-                // case 4
-                result.add(curnt);
-                curnt_map.remove(file);
-            }
-        }
-        for(File file : given_map.keySet()) {
-            Blob given = given_map.get(file);
-            Blob curnt = curnt_map.get(file);
-            if (curnt == null) {
-                //case 5
-                result.add(given);
-                given_map.remove(file);
-            }
-        }
-        //TODO: deal with case 8
-        //TODO: checkout files in set result
-
-
-
+        //TODO: modifiy file in workspace and delete file
+        /**
+         * for blob in result:
+         *     checkout blob
+         * for file in deleted:
+         *     if file in workspace:
+         *     delete file from workspace
+         *
+         * */
+        //TODO: commit changes
+        /**
+         * clear all stagingAreas
+         * make new commit to current branch's head
+         * AND if there is a conflict: build a new file with conflict files, put off commit!
+         *
+         * */
     }
-    private static Map<File, Blob> buildMapforMerge(Commit commit) {
-        Map<File, Blob> result_map = new HashMap<>();
-        for(Blob b : commit.files) {
-            result_map.put(b.getFile(), b);
-        }
-        return result_map;
-    }
+
+
 
 }
 
