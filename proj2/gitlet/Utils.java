@@ -343,5 +343,14 @@ class Utils {
         }
         return result_map;
     }
+    /**
+     * build a new blob with conflicted content
+     * */
+    public static Blob mergeConflict(Blob current, Blob given) {
+        Blob merged = new Blob();
+        merged.setFile(current.getFile());
+        merged.setContent(mergeFilewithConflict(current.getContent(), given.getContent()));
+        return merged;
+    }
 }
 
