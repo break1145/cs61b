@@ -208,69 +208,91 @@ HashSet<Blob> addition;
         - 当前分支为master，merge given：checkout given
         - 当前分支为given，merge master：do nothing
 
+否则，执行以下步骤
+  1. 如果某个文件在给定分支被修改过，但在当前分支未被修改，则将给定分支的`headCommit`中`checkout`该文件，并自动暂存[检查文件是否被修改可比较其SHA-1 code]
+  2. 在当前分支被修改过的文件，如果不在给定分支中，保持不变(还放在当前分支)
+  3. 任何在当前分支和给定分支中以相同方式修改的文件（即，现在两个文件具有相同的内容或都已被删除）在合并时保持不变。
+     如果一个文件被两个分支都删除，但工作区内有一个同名文件，保持其未跟踪状态
+  4. 不在分割点，只在当前分支的文件保持不变
+  5. 不在分割点，只在给定分支的文件应该被`checkout`并加入暂存区
+  6. 在分割点，当前分支未修改过，但在给定分支中被删除的文件应该被删除并取消追踪
+  7. 在分割点，给定分支未修改过，但在当前分支被删除的文件应该保持不变(merge后无此文件)
+  8. 在当前分支和给定分支 以不同方式修改的文件被认为是*冲突(conflict)*，有以下几种情况
+     - 都被修改，但内容不同
+     - 在一个分支修改，另一个分支删除
+     - 在分割点不存在，但在当前分支和给定分支中有不同内容
+     这种情况下，将冲突部分替换为
+      ```
+     <<<<<<< HEAD
+     contents of file in current branch
+     =======
+     contents of file in given branch
+     >>>>>>>
+      ```
+    所有文件都被更新后，分割点不是两个分支的头，merge操作会自动提交commit`Merged [given branch name] into [current branch name].`到log 如果merge遇到了冲突，输出信息`Encountered a merge conflict.` 到终端。
 
-     ​    
+  合并提交与其他提交不同：合并Commit有两个父提交。第一个是当前分支，第二个是给定分支
+  *失败情况*： 
 
-     否则，执行以下步骤
-      1. 如果某个文件在给定分支被修改过，但在当前分支未被修改，则将给定分支的`headCommit`中`checkout`该文件，并自动暂存[检查文件是否被修改可比较其SHA-1 code]
-      2. 在当前分支被修改过的文件，如果不在给定分支中，保持不变(还放在当前分支)
-      3. 任何在当前分支和给定分支中以相同方式修改的文件（即，现在两个文件具有相同的内容或都已被删除）在合并时保持不变。
-         如果一个文件被两个分支都删除，但工作区内有一个同名文件，保持其未跟踪状态
-      4. 不在分割点，只在当前分支的文件保持不变
-      5. 不在分割点，只在给定分支的文件应该被`checkout`并加入暂存区
-      6. 在分割点，当前分支未修改过，但在给定分支中被删除的文件应该被删除并取消追踪
-      7. 在分割点，给定分支未修改过，但在当前分支被删除的文件应该保持不变(merge后无此文件)
-      8. 在当前分支和给定分支 以不同方式修改的文件被认为是*冲突(conflict)*，有以下几种情况
-         - 都被修改，但内容不同
-         - 在一个分支修改，另一个分支删除
-         - 在分割点不存在，但在当前分支和给定分支中有不同内容
-         这种情况下，将冲突部分替换为
-          ```
-         <<<<<<< HEAD
-         contents of file in current branch
-         =======
-         contents of file in given branch
-         >>>>>>>
-          ```
-      所有文件都被更新后，分割点不是两个分支的头，merge操作会自动提交commit`Merged [given branch name] into [current branch name].`到log 如果merge遇到了冲突，输出信息`Encountered a merge conflict.` 到终端。
+1. 有未提交的修改 输出 `You have uncommitted changes`并退出
 
-      合并提交与其他提交不同：合并Commit有两个父提交。第一个是当前分支，第二个是给定分支
-      *失败情况*： PASS
+2. given branch名不存在 输出`A branch with that name does not exist.`并退出
 
+3. current given branch相同 输出`Cannot merge a branch with itself.`并退出
 
-     ​    
+4. 如果合并会导致生成没有任何改变的提交，即两个分支的头完全相同：按照Commit的错误处理方式
 
-      实现思路
+5. 如果当前提交中的一个未跟踪文件将被合并时覆盖或删除 输出`There is an untracked file in the way; delete it, or add and commit it first.`并退出
 
-     1. `Utils.java` 实现 `public Commit LCA(Commit a, Commit b);` 返回`CommitTree`上两个`Commit`的最近公共祖先
-        - LCA：
-          1. 倍增 预处理O(N)，查询O(logN) 
-          2. dfs O(n) 由于文档要求复杂度为O(NlogN),使用此方法
-        
-     2. 有三个关键Commit。分别是两个分支的head和分割点
-          比较对象是Commit包含的文件，
-          构建<File,Blob>的映射，遍历分割点 的File，比较三个Commit中的内容，并依次考虑上文的8种情况
-          
-     3. 考虑到合并操作是将一个分支的所有改变增加到该分支 合并时遍历每个文件 针对文件处理以上8种情况：
+   >  可能导致这种情况的例子包括：
+   >
+   > 1. 当前分支中存在一个未跟踪的文件，而给定分支中修改了同名文件，并且合并操作会覆盖或删除这个未跟踪的文件。
+   > 2. 当前分支中存在一个未跟踪的文件，而给定分支中删除了同名文件，并且合并操作会删除这个未跟踪的文件。
 
-          ​		设三个关键Commit：分支A(当前分支)，分支B(给定分支)，分割点C
+   **在任何合并操作前进行错误检查**
 
-          ```python
-          set<File> set = A + B + C
-          set<Blob> ans
-          for item in set:
-          	if item in A and B:
-          		case xxx
-              else if xxx:
-                  case xxx
-          ```
+**实现思路**
 
-          ans中储存最后应该被checkout的blob。
+ 1. `Utils.java` 实现 `public Commit LCA(Commit a, Commit b);` 返回`CommitTree`上两个`Commit`的最近公共祖先
+    
+    - LCA：
+      1. 倍增 预处理O(N)，查询O(logN) 
+      2. dfs O(n) 由于文档要求复杂度为O(NlogN),使用此方法
+    
+ 2. 有三个关键Commit。分别是两个分支的head和分割点
+      比较对象是Commit包含的文件，
+      构建<File,Blob>的映射，遍历分割点 的File，比较三个Commit中的内容，并依次考虑上文的8种情况
+      
+ 3. 考虑到合并操作是将一个分支的所有改变增加到该分支 合并时遍历每个文件 针对文件处理以上8种情况：
 
-          - 某文件在任意分支被删除：从工作区删除并解除追踪
-          - 其他情况不删除，直接checkout文件
+     设三个关键Commit：分支A(当前分支)，分支B(给定分支)，分割点C
 
-     4. 根据result 和 deleted集合更新工作区文件 并制作新提交
+      ```python
+      set<File> set = A + B + C
+      set<Blob> ans
+      for item in set:
+      	if item in A and B:
+      		case xxx
+          else if xxx:
+              case xxx
+      ```
+
+      ans中储存最后应该被checkout的blob。
+
+      - 某文件在任意分支被删除：从工作区删除并解除追踪
+      - 其他情况不删除，直接checkout文件
+
+ 4. 根据result 和 deleted集合更新工作区文件 并制作新提交
+
+     此时 工作区文件
+
+     1. 即将被checkout
+     2. 即将被delete
+     3. 不变化
+
+ 5. 冲突： 由于修改方式不同导致冲突。解决方法是创建一个新Blob，内容为待处理冲突
+
+     将新Blob加入ans中
 
 ## Algorithms
 1. 更新：程序启动时队所有跟踪的文件执行`add`操作，让`add`分辨哪些文件有更新
