@@ -4,6 +4,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 
 import static gitlet.Repository.Files_DIR;
 import static gitlet.Utils.*;
@@ -42,8 +43,19 @@ public class Blob implements Serializable {
     public void save() {
         File blobFile = join(Files_DIR, this.shaCode);
         writeObject(blobFile, this);
-
     }
+
+    public void setFile(File f) {
+        this.file = f;
+        this.path = f.getPath();
+    }
+    public void setContent(byte[] content) {
+        this.content = content;
+        this.shaCode = sha1(this.path + new String(content, StandardCharsets.UTF_8));
+    }
+
+
+
     @Override
     public int hashCode() {
         return shaCode.hashCode();
