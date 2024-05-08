@@ -599,12 +599,15 @@ public class Repository {
         Map<File, Blob> given_map = buildMapformCommit(givenHead);
         Map<File, Blob> split_map = buildMapformCommit(splitPoint);
         Set<Blob> result = new HashSet<>();
+        Set<Blob> result_Conflict = new HashSet<>();
         Set<File> deleted = new HashSet<>();
 
         Map<File, Blob> uniteMap = new HashMap<>();
         uniteMap.putAll(curnt_map);
         uniteMap.putAll(given_map);
         uniteMap.putAll(split_map);
+
+        boolean conflictExist = false;
 
         for(File item : uniteMap.keySet()) {
             Blob a = curnt_map.get(item);
@@ -620,10 +623,10 @@ public class Repository {
                         // case 2:
                         result.add(a);
                     }
-                    continue;
                 } else if (!a.equals(s) && !b.equals(s) && !a.equals(b)) {
                     // case 8.1 : file changed by different ways:
-                    //TODO: fill in codes with conflict
+                    result_Conflict.add(mergeConflict(a, b));
+                    conflictExist = true;
                 }
             } else if (!split_map.containsKey(item)) {
                 // not exist in split point
@@ -635,7 +638,8 @@ public class Repository {
                     result.add(b);
                 } else if (a != null && b != null && !a.equals(b)) {
                     // case 8.3 : not in split point but have different content
-                    //TODO: conflict
+                    result_Conflict.add(mergeConflict(a, b));
+                    conflictExist = true;
                 } else {
                     // case 3
                     result.add(a);
@@ -646,7 +650,9 @@ public class Repository {
                 } else if (b != null && b.equals(s)) {
                     deleted.add(item);
                 } else {
-                    //TODO: conflict
+                    // changed in one and deleted in the other
+                    result_Conflict.add(mergeConflict(a, b));
+                    conflictExist = true;
                 }
             } else {
                 // both deleted in two branches
@@ -662,13 +668,53 @@ public class Repository {
          *     delete file from workspace
          *
          * */
+        List<String> fileList = plainFilenamesIn(CWD);
+        for (Blob blob: result) {
+            writeContents(blob.getFile(), blob.getContent());
+        }
+        for (File delete : deleted) {
+            if (fileList.contains(delete.getName())) {
+                restrictedDelete(delete);
+            }
+        }
         //TODO: commit changes
         /**
          * clear all stagingAreas
          * make new commit to current branch's head
          * AND if there is a conflict: build a new file with conflict files, put off commit!
-         *
          * */
+        if (!conflictExist) {
+            // if there's no conflict: commit changes
+            String commitMessage = String.format("Merged [%s] into [%s]."
+                    , givenBranch.getBranchName()
+                    , currentBranch.getBranchName());
+            // build a new commit
+            Commit commit = new Commit(commitMessage);
+            commit.parentCodes.add(currentHead.hashcode());
+            commit.parentCodes.add(givenHead.hashcode());
+
+            for (Blob blob : result) {
+                commit.files.add(blob);
+                commit.filesCode.add(blob.getShaCode());
+            }
+            commit.save();
+
+            // update commitTree
+            commitTree.add_Commit(commit);
+            commitTree.addParent(commit, givenHead);
+            writeObject(CommitTree_DIR_File, commitTree);
+            // clear all stagingAreas
+            writeObject(Staging_Area_File,new HashSet<>());
+            writeObject(Removed_Staging_Area_File, new HashSet<>());
+            writeObject(Addition_File,new HashSet<>());
+        } else {
+            // wait until conflict is handled
+            // TODO: fill in rest code
+            message("Encountered a merge conflict");
+            for (Blob blob : result_Conflict) {
+                writeContents(blob.getFile(), blob.getContent());
+            }
+        }
     }
 
 
