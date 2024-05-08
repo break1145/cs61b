@@ -35,6 +35,13 @@ public class CommitTree implements Serializable {
         }
 
     }
+    /**
+     * get the node in the commitTree by commit
+     * @param node root
+     * @param commit value of the node to be found
+     * @return a CTreeNode with value of commit in the tree. <p></p>
+     *          null if no node satisfy with that
+     * */
     private CTreeNode getNodebyCommit(CTreeNode node,Commit commit) {
         if (node.val.hashcode().equals(commit.hashcode())) {
             return node;
@@ -129,6 +136,24 @@ public class CommitTree implements Serializable {
             }
             node = node.parents.get(0);
         }
+    }
+
+    /**
+     * make the given commit be the parent of 'origin'.
+     * @param origin The commit to which a parent node should be added
+     * @param given The commit  to be added to node 'origin'
+     * @return true if and only if addition is successful;<p></p>
+     *          false otherwise
+     * */
+    public boolean addParent(Commit origin, Commit given) {
+        CTreeNode originNode = getNodebyCommit(root, origin);
+        CTreeNode givenNode = getNodebyCommit(root, given);
+        if (originNode != null && givenNode != null) {
+            originNode.parents.add(givenNode);
+            givenNode.children.add(originNode);
+            return true;
+        }
+        return false;
     }
 
 

@@ -28,13 +28,15 @@ public class Commit implements Serializable {
     public HashSet<Blob> files;
     public HashSet<String> filesCode;
     /** parent commit */
-    private List<String> parentCodes;
+    public List<String> parentCodes;
 
     public Commit(String message) {
         this.message = message;
         this.currentDate = new Date();
         this.hashCode = this.getHashCode();
+        this.files = new HashSet<>();
         this.filesCode = new HashSet<>();
+        this.parentCodes = new ArrayList<>();
     }
     public Commit(Commit parent, String message) {
         this.parentCodes = new ArrayList<>(Collections.singletonList(parent.hashCode));
