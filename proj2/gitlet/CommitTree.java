@@ -92,10 +92,8 @@ public class CommitTree implements Serializable {
         getCurrentBranch();
         this.currentBranch.commitList.add(head.val.hashcode());
         saveCurrentBranch();
-
         return true;
     }
-
 
     /**
      * print the structure of commit tree
@@ -119,24 +117,24 @@ public class CommitTree implements Serializable {
             printTreeRecursive(child, depth + 1);
         }
     }
-    public void printTreefromHead() {
-        CTreeNode node = this.head;
-        while(node != null) {
-            Utils.message("===");
-            Utils.message("commit "+ node.val.hashcode());
-            // 使用formatter输出标准日期
-            Formatter formatter = new Formatter(Locale.ENGLISH);
-            Date currentDate = new Date();
-            String formattedDate = String.valueOf(formatter.format("Date: %ta %tb %td %tT %tY %tz", currentDate, currentDate, currentDate, currentDate, currentDate, currentDate));
-            Utils.message(formattedDate);
-            Utils.message(node.val.getMessage());
-            Utils.message("");
-            if(node.parents.isEmpty()) {
-                break;
-            }
-            node = node.parents.get(0);
-        }
-    }
+//    public void printTreefromHead() {
+//        CTreeNode node = this.head;
+//        while(node != null) {
+//            Utils.message("===");
+//            Utils.message("commit "+ node.val.hashcode());
+//            // 使用formatter输出标准日期
+//            Formatter formatter = new Formatter(Locale.ENGLISH);
+//            Date currentDate = new Date();
+//            String formattedDate = String.valueOf(formatter.format("Date: %ta %tb %td %tT %tY %tz", currentDate, currentDate, currentDate, currentDate, currentDate, currentDate));
+//            Utils.message(formattedDate);
+//            Utils.message(node.val.getMessage());
+//            Utils.message("");
+//            if(node.parents.isEmpty()) {
+//                break;
+//            }
+//            node = node.parents.get(0);
+//        }
+//    }
 
     /**
      * make the given commit be the parent of 'origin'.
@@ -156,10 +154,8 @@ public class CommitTree implements Serializable {
         return false;
     }
 
-
-
     /**
-     * 获取当前分支的headCommit
+     * get current branch's head commit
      * */
     public Commit getHeadCommit() {
         return this.currentBranch.getHeadCommit();

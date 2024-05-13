@@ -2,11 +2,10 @@ package gitlet;
 
 
 import java.io.File;
-import java.util.Arrays;
+
 
 import static gitlet.Repository.*;
-import static gitlet.Utils.join;
-import static gitlet.Utils.message;
+import static gitlet.Utils.*;
 
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
@@ -62,6 +61,9 @@ public class Main {
                 } else {
                     Repository.reset(args[1]);
                 }
+            case "merge":
+                branch given = readObject(join(Branch_DIR, args[1]), branch.class);
+                Repository.merge(given);
 
             default:
                 // TODO: Output messages for error commands

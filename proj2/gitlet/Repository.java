@@ -1,6 +1,6 @@
 package gitlet;
 
-import net.sf.saxon.trans.SymbolicName;
+
 
 import java.io.File;
 import java.util.*;
@@ -235,12 +235,7 @@ public class Repository {
         }
         // delete all files in removedStagingArea from commit
         for(Blob b : removedStagingArea) {
-            for(Blob b2 : updatedFiles) {
-                if(b.getPath().equals(b2.getPath())) {
-                    updatedFiles.remove(b2);
-
-                }
-            }
+            updatedFiles.removeIf(b2 -> b.getPath().equals(b2.getPath()));
         }
         // update file list and its SHA-1 code
         updatedCommit.files = updatedFiles;
@@ -269,9 +264,7 @@ public class Repository {
             message("No reason to remove the file.");
             exit(0);
         }
-        if(stagingArea.contains(blob)) {
-            stagingArea.remove(blob);
-        }
+        stagingArea.remove(blob);
         if(headCommit.files.contains(blob)) {
             removedStagingArea.add(blob);
         }
@@ -315,7 +308,7 @@ public class Repository {
      * */
     public static void find(String message) {
         List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
-        Boolean founded = false;
+        boolean founded = false;
         for(String commitID : commitList) {
             Commit currentCommit = readObject(join(Commit_DIR, commitID), Commit.class);
             if(currentCommit.getMessage().equals(message)) {
@@ -576,6 +569,14 @@ public class Repository {
      * @param givenBranch branch to be merged to current branch
      * */
     public static void merge(branch givenBranch) {
+        //TODO: failure case 4/5
+
+        // failure case2: branch not exist
+        List<String> branchList = plainFilenamesIn(Branch_DIR);
+        if (!branchList.contains(givenBranch.getBranchName())) {
+            message("A branch with that name does not exist.");
+            return;
+        }
         // check before merge
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         branch currentBranch = commitTree.getCurrentBranch();
@@ -591,6 +592,21 @@ public class Repository {
             message("Current branch fast-forwarded.");
             return;
         }
+        if (currentBranch.getBranchName().equals(givenBranch.getBranchName())) {
+            message("Cannot merge a branch with itself.");
+            return;
+        }
+        //
+        // TODO: check failure cases
+        // failure case1: uncommited change
+        HashSet<Blob> staging_Area = readObject(Staging_Area_File, HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        if (!staging_Area.isEmpty() || !removedStagingArea.isEmpty()) {
+            message("You have uncommitted changes");
+            return;
+        }
+
+
         // merge
         // build Map<File, Blob> for compare file content in three commits:split,current and given
         Commit currentHead = commitTree.getHeadCommit();
@@ -677,7 +693,6 @@ public class Repository {
                 restrictedDelete(delete);
             }
         }
-        //TODO: commit changes
         /**
          * clear all stagingAreas
          * make new commit to current branch's head
@@ -714,6 +729,9 @@ public class Repository {
             for (Blob blob : result_Conflict) {
                 writeContents(blob.getFile(), blob.getContent());
             }
+            // stage conflict file
+            writeObject(Staging_Area_File, new HashSet<>(result_Conflict));
+
         }
     }
 

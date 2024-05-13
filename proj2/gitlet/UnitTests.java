@@ -162,14 +162,17 @@ public class UnitTests {
         Blob blob2 = new Blob(join(CWD, "testFile2.md"));
         byte[] content = mergeFilewithConflict(blob1.getContent(), blob2.getContent());
         writeContents(join(CWD, "testFile1.md"),content);
-
-
-
     }
     @Test
     public void testWriteFiletoBottom() {
         Blob blob1 = new Blob(join(CWD, "testFile1.md"));
         writeContents(join(CWD, "testFile1.md"),writeLinetoBottom(blob1.getContent(), "edit!"));
+    }
+
+    @Test
+    public void testMerge_commonCase() {
+        initialize();
+
     }
 }
 
