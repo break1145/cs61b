@@ -61,8 +61,9 @@ public class UnitTests {
 
     @Test
     public void testLog() {
-        Repository.log();
-
+//        Repository.log();
+        Repository.add(new File("README.md"));
+        status();
     }
 
     @Test
@@ -92,6 +93,7 @@ public class UnitTests {
     public void testStatus() {
         Repository.startCheck();
         Repository.status();
+
     }
 
     @Test
@@ -173,6 +175,32 @@ public class UnitTests {
     public void testMerge_commonCase() {
         initialize();
 
+    }
+
+    @Test
+    public void testDumpobj(){
+        String fileName = ".gitlet/commits/3c9bfc102dc642d8c3213654202063a155d480b9";
+        Dumpable obj = Utils.readObject(new File(fileName),
+                Dumpable.class);
+        obj.dump();
+    }
+    @Test
+    public void testStatus_test12() {
+        Repository.initialize();
+        Repository.add(new File("f.txt"));
+        Repository.add(new File("g.txt"));
+        Repository.status();
+
+    }
+
+    @Test
+    public void testRM_test13() {
+        initialize();
+        add(new File("f.txt"));
+        add(new File("g.txt"));
+        commit("two new files");
+        remove(new File("f.txt"));
+        status();
     }
 }
 
