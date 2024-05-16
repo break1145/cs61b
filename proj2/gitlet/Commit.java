@@ -3,6 +3,7 @@ package gitlet;
 // TODO: any imports you need here
 
 import java.io.File;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.*;
 
@@ -15,7 +16,7 @@ import static gitlet.Utils.*;
  *
  *  @author break
  */
-public class Commit implements Serializable {
+public class Commit implements Serializable , Dumpable{
     /**
      * TODO: add instance variables here.
      */
@@ -107,5 +108,13 @@ public class Commit implements Serializable {
         return this.message + ' ' + this.currentDate.toString();
     }
 
+    @Override
+    public void dump() {
+        printCommit(this);
+        System.out.println("files");
+        for (String x : this.filesCode) {
+            System.out.println(x);
+        }
+    }
 
 }

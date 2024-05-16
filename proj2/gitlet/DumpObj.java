@@ -35,6 +35,7 @@ public class DumpObj {
         for (String fileName : files) {
             Dumpable obj = Utils.readObject(new File(fileName),
                                             Dumpable.class);
+//            Commit obj = Utils.readObject(new File(fileName), Commit.class);
             obj.dump();
             System.out.println("---");
         }

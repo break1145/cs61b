@@ -3,12 +3,13 @@ package gitlet;
 
 
 import java.io.File;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 
 import static gitlet.Repository.Files_DIR;
 import static gitlet.Utils.*;
-public class Blob implements Serializable {
+public class Blob implements Serializable ,Dumpable{
     private String path;
     private byte[] content;
     private File file;
@@ -74,6 +75,12 @@ public class Blob implements Serializable {
         Blob other = (Blob) obj;
         // compare
         return this.shaCode.equals(other.shaCode);
+    }
+
+    @Override
+    public void dump() {
+        System.out.println("File :" + this.getFile());
+        System.out.println("SCode:" + this.getShaCode());
     }
 
 }
