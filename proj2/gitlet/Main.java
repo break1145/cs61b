@@ -31,7 +31,7 @@ public class Main {
                 initialize();
                 break;
             case "add":
-                File file = join(CWD, args[1]);
+                File file = new File(args[1]);
                 add(file);
                 break;
             case "commit":
@@ -55,15 +55,33 @@ public class Main {
                 } else {
                     Repository.checkout(args);
                 }
+                break;
             case "reset":
                 if(args.length <= 1) {
                     message("Please enter a file path.");
                 } else {
                     Repository.reset(args[1]);
                 }
+                break;
             case "merge":
                 branch given = readObject(join(Branch_DIR, args[1]), branch.class);
                 Repository.merge(given);
+                break;
+            case "status":
+                Repository.status();
+                break;
+            case "global-log":
+                Repository.global_log();
+                break;
+            case "find":
+                Repository.find(args[1]);
+                break;
+            case "branch":
+                Repository.branch(args[1]);
+                break;
+            case "rm-branch":
+                Repository.removeBranch(args[1]);
+                break;
 
             default:
                 // TODO: Output messages for error commands
