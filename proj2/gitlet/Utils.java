@@ -253,14 +253,15 @@ class Utils {
     }
 
     public static void printCommit(Commit commit) {
-        message("===");
-        message("commit "+ commit.hashcode());
+        System.out.println("===");
+        System.out.println("commit "+ commit.hashcode());
+
         Formatter formatter = new Formatter(Locale.ENGLISH);
         Date currentDate = commit.getCurrentDate();
         String formattedDate = String.valueOf(formatter.format("Date: %ta %tb %td %tT %tY %tz", currentDate, currentDate, currentDate, currentDate, currentDate, currentDate));
-        message(formattedDate);
-        message(commit.getMessage());
-        message("");
+        System.out.println(formattedDate);
+        System.out.println(commit.getMessage());
+        System.out.println("");
     }
 
     /**
