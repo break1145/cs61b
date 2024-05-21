@@ -35,7 +35,7 @@ public class Main {
                 add(file);
                 break;
             case "commit":
-                if(args.length <= 1) {
+                if(args.length <= 1 || args[1].equals("")) {
                     message("Please enter a commit message.");
                 }
                 commit(args[1]);
