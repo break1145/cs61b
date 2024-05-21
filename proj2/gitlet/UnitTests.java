@@ -200,14 +200,16 @@ public class UnitTests {
         add(new File("f.txt"));
         add(new File("g.txt"));
         commit("two new files");
-
     }
     @Test
     public void testRM_test15_p2() throws IOException {
+        startCheck();
         remove(new File("f.txt"));
         File f = new File("f.txt");
         f.createNewFile();
+        startCheck();
         add(f);
+        startCheck();
         status();
     }
     @Test
@@ -320,7 +322,96 @@ public class UnitTests {
         startCheck();
         remove(file);
         status();
-
+        /**
+         * test01-init:
+         * OK
+         * test02-basic-checkout:
+         * OK
+         * test03-basic-log:
+         * OK
+         * test04-prev-checkout:
+         * ERROR (file wug.txt has incorrect content)
+         * test11-basic-status:
+         * OK
+         * test12-add-status-debug:
+         * OK
+         * test12-add-status:
+         * OK
+         * test13-remove-status:
+         * OK
+         * test14-add-remove-status:
+         * OK
+         * test15-remove-add-status:
+         * ERROR (incorrect output)
+         * test16-empty-commit-err:
+         * OK
+         * test17-empty-commit-message-err:
+         * OK
+         * test18-nop-add:
+         * ERROR (incorrect output)
+         * test19-add-missing-err:
+         * OK
+         * test20-status-after-commit:
+         * ERROR (incorrect output)
+         * test21-nop-remove-err:
+         * OK
+         * test22-remove-deleted-file:
+         * OK
+         * test23-global-log:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test24-global-log-prev:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test25-successful-find:
+         * OK
+         * test26-successful-find-orphan:
+         * OK
+         * test27-unsuccessful-find-err:
+         * OK
+         * test28-checkout-detail:
+         * ERROR (file wug.txt has incorrect content)
+         * test29-bad-checkouts-err:
+         * ERROR (incorrect output)
+         * test30-branches:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test30-rm-branch:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test31-duplicate-branch-err:
+         * ERROR (incorrect output)
+         * test31-rm-branch-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test32-file-overwrite-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test33-merge-no-conflicts:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test34-merge-conflicts:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test35-merge-rm-conflicts:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test36-merge-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test36-merge-parent2:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test37-reset1:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test38-bad-resets-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test39-short-uid:
+         * ERROR (file wug.txt has incorrect content)
+         * test40-special-merge-cases:
+         * ERROR (incorrect output)
+         * test41-no-command-err:
+         * ERROR (incorrect output)
+         * test42-other-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test43-criss-cross-merge-b:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test43-criss-cross-merge:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test44-bai-merge:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test45-normal-status:
+         * OK
+         * */
     }
 
 

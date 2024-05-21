@@ -164,23 +164,21 @@ public class Repository {
         List<String> fileList = Utils.plainFilenamesIn(CWD);
         Commit headCommit = commitTree.getHeadCommit();
         if (fileList != null) {
-            if (fileList != null) {
-                // unstage file by system command delete rather than remove:
-                for (Blob blob1 : headCommit.files) {
-                    if (!fileList.contains(blob1.getFile())) {
-                        // file is deleted but not from gitlet:
-                        removedStagingArea.add(blob1);
-                        break;
-                    }
+            // unstage file by system command delete rather than remove:
+            for (Blob blob1 : headCommit.files) {
+                if (!fileList.contains(blob1.getFile().getName())) {
+                    // file is deleted but not from gitlet:
+                    removedStagingArea.add(blob1);
+                    break;
                 }
             }
-            if (blobs != null) {
-                for (Blob blob : blobs) {
-                    // read file in CWD as headCommit's file path
-                    if (!removedStagingArea.contains(blob)) {
-                        Blob newBlob = new Blob(blob.getFile());
-                        add(newBlob, true);
-                    }
+        }
+        if (blobs != null) {
+            for (Blob blob : blobs) {
+                // read file in CWD as headCommit's file path
+                if (!removedStagingArea.contains(blob)) {
+                    Blob newBlob = new Blob(blob.getFile());
+                    add(newBlob, true);
                 }
             }
         }
