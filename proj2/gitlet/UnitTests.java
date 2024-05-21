@@ -310,6 +310,19 @@ public class UnitTests {
          * OK
          * */
     }
+    @Test
+    public void testRemove_test22() throws IOException {
+        initialize();
+        File file = new File("f.txt");
+        add(file);
+        commit("new file");
+        restrictedDelete(file);
+        startCheck();
+        remove(file);
+        status();
+
+    }
+
 
 }
 

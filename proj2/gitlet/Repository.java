@@ -161,16 +161,30 @@ public class Repository {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> blobs = commitTree.getHeadCommit().files;
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        if(blobs != null) {
-            for(Blob blob : blobs) {
-                // read file in CWD as headCommit's file path
-                if(!removedStagingArea.contains(blob)) {
-                    Blob newBlob = new Blob(blob.getFile());
-                    add(newBlob, true);
+        List<String> fileList = Utils.plainFilenamesIn(CWD);
+        Commit headCommit = commitTree.getHeadCommit();
+        if (fileList != null) {
+            if (fileList != null) {
+                // unstage file by system command delete rather than remove:
+                for (Blob blob1 : headCommit.files) {
+                    if (!fileList.contains(blob1.getFile())) {
+                        // file is deleted but not from gitlet:
+                        removedStagingArea.add(blob1);
+                        break;
+                    }
+                }
+            }
+            if (blobs != null) {
+                for (Blob blob : blobs) {
+                    // read file in CWD as headCommit's file path
+                    if (!removedStagingArea.contains(blob)) {
+                        Blob newBlob = new Blob(blob.getFile());
+                        add(newBlob, true);
+                    }
                 }
             }
         }
-
+        writeObject(Removed_Staging_Area_File, removedStagingArea);
     }
 
     public static void commit(String message) {
@@ -259,28 +273,39 @@ public class Repository {
      * In short, untrack a file
      * */
     public static void remove(File file) {
-//        System.out.println("FUCK YOU ALL");
-        if (!file.exists()) {
-            System.out.println("No reason to remove the file.");
-            System.exit(0);
-        }
-
+        //TODO: a bit ugly :(
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
         Commit headCommit = commitTree.getHeadCommit();
+        List<String> fileList = Utils.plainFilenamesIn(CWD);
+
+        if (!file.exists()) {
+            if (fileList != null) {
+                // unstage file by system command delete rather than remove:
+                for (Blob blob1 : headCommit.files) {
+                    if (!fileList.contains(blob1.getFile())) {
+                        // file is deleted but not from gitlet:
+                        removedStagingArea.add(blob1);
+                        break;
+                    }
+                }
+                writeObject(Removed_Staging_Area_File, removedStagingArea);
+            } else {
+                System.out.println("No reason to remove the file.");
+            }
+            System.exit(0);
+        }
 
         Blob blob = new Blob(file);
         boolean isStaged = stagingArea.contains(blob);
         boolean isTracked = headCommit.files.contains(blob);
 
-
         if (!isStaged && !isTracked) {
             System.out.println("No reason to remove the file.");
             System.exit(0);
         }
-
         if (isStaged) {
             stagingArea.remove(blob);
         }
@@ -291,7 +316,6 @@ public class Repository {
         if (additionArea.contains(blob)) {
             additionArea.remove(blob);
         }
-//        restrictedDelete(file);
 
         writeObject(Staging_Area_File, stagingArea);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
