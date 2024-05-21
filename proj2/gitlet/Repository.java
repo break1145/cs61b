@@ -130,12 +130,10 @@ public class Repository {
         HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         HashSet<String> filesCodehashSet = commitTree.getHeadCommit().filesCode;
-        if(filesCodehashSet.contains(blob.getShaCode())) {
-            stagingArea.remove(blob);
-            return;
-        }
+
         if (removedStagingArea.contains(blob)) {
             removedStagingArea.remove(blob);
+            writeObject(Removed_Staging_Area_File, removedStagingArea);
             return;
         }
         // if a file in stagingArea and name is same as blob's,change it to blob
@@ -147,11 +145,12 @@ public class Repository {
         }
 
         stagingArea.add(blob);
-        if(!fromStartCheck) {
+        if(!fromStartCheck && !commitTree.getHeadCommit().files.contains(blob)) {
             additionArea.add(blob);
         }
         writeObject(Staging_Area_File, stagingArea);
         writeObject(Addition_File, additionArea);
+        writeObject(Removed_Staging_Area_File, removedStagingArea);
     }
 
     /**
@@ -269,11 +268,13 @@ public class Repository {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
         Commit headCommit = commitTree.getHeadCommit();
 
         Blob blob = new Blob(file);
         boolean isStaged = stagingArea.contains(blob);
         boolean isTracked = headCommit.files.contains(blob);
+
 
         if (!isStaged && !isTracked) {
             System.out.println("No reason to remove the file.");
@@ -285,11 +286,16 @@ public class Repository {
         }
         if (isTracked) {
             removedStagingArea.add(blob);
+            restrictedDelete(file);
         }
-        restrictedDelete(file);
+        if (additionArea.contains(blob)) {
+            additionArea.remove(blob);
+        }
+//        restrictedDelete(file);
 
         writeObject(Staging_Area_File, stagingArea);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
+        writeObject(Addition_File, additionArea);
     }
 
 
@@ -351,7 +357,6 @@ public class Repository {
      * 5. TODO:untracked files
      * */
     public static void status() {
-        //TODO: method has not been check after other method changing
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
@@ -380,7 +385,6 @@ public class Repository {
         }
         System.out.println("");
 
-        //TODO: removed (haven't tested)
         System.out.println("=== Removed Files ===");
         for(Blob b : removedStagingArea) {
             System.out.println(b.getFile().getName());
@@ -390,12 +394,6 @@ public class Repository {
         //modified but not commit
         System.out.println("=== Modifications Not Staged For Commit ===");
         //modified
-        HashSet<Blob> modified = new HashSet<>(stagingArea);
-        modified.removeAll(additionArea);
-        for(Blob b : modified) {
-            System.out.println(b.getFile().getName() + " (modified)");
-        }
-        //TODO: deleted
 
         System.out.println("");
 
