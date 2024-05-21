@@ -5,6 +5,7 @@ import org.checkerframework.checker.units.qual.C;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static gitlet.Repository.*;
@@ -194,14 +195,122 @@ public class UnitTests {
     }
 
     @Test
-    public void testRM_test13() {
+    public void testRM_test15_p1() throws IOException {
         initialize();
         add(new File("f.txt"));
         add(new File("g.txt"));
         commit("two new files");
+
+    }
+    @Test
+    public void testRM_test15_p2() throws IOException {
         remove(new File("f.txt"));
+        File f = new File("f.txt");
+        f.createNewFile();
+        add(f);
         status();
     }
+    @Test
+    public void testStatus_test18() {
+        initialize();
+        add(new File("f.txt"));
+        add(new File("g.txt"));
+        commit("two new files");
+        add(new File("f.txt"));
+        status();
+        //TODO: 进度：
+        /**
+         * test01-init:
+         * OK
+         * test02-basic-checkout:
+         * OK
+         * test03-basic-log:
+         * OK
+         * test04-prev-checkout:
+         * OK
+         * test11-basic-status:
+         * OK
+         * test12-add-status-debug:
+         * OK
+         * test12-add-status:
+         * OK
+         * test13-remove-status:
+         * OK
+         * test14-add-remove-status:
+         * OK
+         * test15-remove-add-status:
+         * OK
+         * test16-empty-commit-err:
+         * OK
+         * test17-empty-commit-message-err:
+         * OK
+         * test18-nop-add:
+         * OK
+         * test19-add-missing-err:
+         * OK
+         * test20-status-after-commit:
+         * OK
+         * test21-nop-remove-err:
+         * OK
+         * test22-remove-deleted-file:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test23-global-log:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test24-global-log-prev:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test25-successful-find:
+         * OK
+         * test26-successful-find-orphan:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test27-unsuccessful-find-err:
+         * OK
+         * test28-checkout-detail:
+         * ERROR (incorrect output)
+         * test29-bad-checkouts-err:
+         * ERROR (incorrect output)
+         * test30-branches:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test30-rm-branch:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test31-duplicate-branch-err:
+         * ERROR (incorrect output)
+         * test31-rm-branch-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test32-file-overwrite-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test33-merge-no-conflicts:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test34-merge-conflicts:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test35-merge-rm-conflicts:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test36-merge-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test36-merge-parent2:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test37-reset1:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test38-bad-resets-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test39-short-uid:
+         * ERROR (incorrect output)
+         * test40-special-merge-cases:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test41-no-command-err:
+         * ERROR (incorrect output)
+         * test42-other-err:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test43-criss-cross-merge-b:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test43-criss-cross-merge:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test44-bai-merge:
+         * ERROR (java gitlet.Main exited with code 1)
+         * test45-normal-status:
+         * OK
+         * */
+    }
+
 }
 
 
