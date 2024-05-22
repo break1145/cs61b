@@ -467,23 +467,19 @@ public class Repository {
 
     }
 
-    /**
-     * command checkout
-     * 1. checkout -- [file name]
-     *
-     * 2. checkout [commit id] -- [file name]
-     *
-     * 3. checkout [branch name]
-     * */
     public static void checkout(String[] args) {
+        if (args == null || args.length < 2) {
+            message("Incorrect operands.");
+            exit(0);
+        }
+
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
-        // case 1 Takes the version of the file as it exists in the head commit
-        // and puts it in the working directory,and overwrite,mark as unstaged
-        if (args[1].equals("--")) {
 
+        // case 1: checkout -- [file name]
+        if (args.length == 3 && args[1].equals("--")) {
             String filename = args[2];
             Commit headCommit = commitTree.getHeadCommit();
 
@@ -495,8 +491,8 @@ public class Repository {
             exit(0);
         }
 
-        // case 2
-        if(args[2].equals("--")) {
+        // case 2: checkout [commit id] -- [file name]
+        if (args.length == 4 && args[2].equals("--")) {
             String commitID = args[1];
             if(commitID.length() == 6) {
                 HashMap<String, String> commitPrefixMap = readObject(Commit_Prefix_Map_File, HashMap.class);
@@ -513,68 +509,72 @@ public class Repository {
                     add(new File(filename));
                 }
             } else {
-                message("No commit with that id exists");
+                message("No commit with that id exists.");
                 exit(0);
             }
             exit(0);
         }
 
-        //case 3
-        String branchName = args[1];
-        if (branchName.equals(commitTree.getCurrentBranch().getBranchName())) {
-            message("No need to checkout the current branch.");
-            exit(0);
-        } else {
-            List<String> branchList = plainFilenamesIn(Branch_DIR);
-            if (branchList != null && branchList.contains(branchName)) {
-                branch forwardBranch = readObject(join(Branch_DIR, branchName), branch.class);
-                Commit headCommit = commitTree.getHeadCommit();
+        // case 3: checkout [branch name]
+        if (args.length == 2) {
+            String branchName = args[1];
+            if (branchName.equals(commitTree.getCurrentBranch().getBranchName())) {
+                message("No need to checkout the current branch.");
+                exit(0);
+            } else {
+                List<String> branchList = plainFilenamesIn(Branch_DIR);
+                if (branchList != null && branchList.contains(branchName)) {
+                    branch forwardBranch = readObject(join(Branch_DIR, branchName), branch.class);
+                    Commit headCommit = commitTree.getHeadCommit();
 
-                HashSet<Blob> staged = new HashSet<>(headCommit.files);
-                staged.addAll(additionArea);
-                // case1 untracked
-                List<String> fileList = Utils.plainFilenamesIn(CWD);
-                for(String file : fileList) {
-                    Blob b = new Blob(new File(file));
-                    if(!staged.contains(b)) {
+                    HashSet<Blob> staged = new HashSet<>(headCommit.files);
+                    staged.addAll(additionArea);
+                    // case1 untracked
+                    List<String> fileList = Utils.plainFilenamesIn(CWD);
+                    for(String file : fileList) {
+                        Blob b = new Blob(new File(file));
+                        if(!staged.contains(b)) {
+                            message("There is an untracked file in the way; delete it, or add and commit it first.");
+                            exit(0);
+                        }
+                    }
+                    // case2 change hasn't been commited
+                    HashSet<Blob> modified = new HashSet<>(stagingArea);
+                    modified.removeAll(additionArea);
+                    for(Blob b : modified) {
                         message("There is an untracked file in the way; delete it, or add and commit it first.");
                         exit(0);
                     }
-                }
-                // case2 change hasn't been commited
-                HashSet<Blob> modified = new HashSet<>(stagingArea);
-                modified.removeAll(additionArea);
-                for(Blob b : modified) {
-                    message("There is an untracked file in the way; delete it, or add and commit it first.");
+                    // case3 all file is tracked and no change to commit,start changing branch
+
+                    commitTree.setCurrentBranch(branchName);
+                    headCommit = commitTree.getHeadCommit();
+                    // clear CWD
+                    List<String> filenames = plainFilenamesIn(CWD);
+                    for(String filename : filenames) {
+                        restrictedDelete(new File(filename));
+                    }
+                    for(String fileCode : headCommit.filesCode) {
+                        Blob newBlob = readObject(join(Files_DIR, fileCode), Blob.class);
+                        writeContents(join(CWD, newBlob.getFile().getName()), newBlob.getContent());
+                    }
+                    stagingArea.clear();
+
+                    writeObject(Staging_Area_File, stagingArea);
+                    writeObject(CommitTree_DIR_File, commitTree);
+                    exit(0);
+                } else {
+                    message("No such branch exists.");
                     exit(0);
                 }
-                // case3 all file is tracked and no change to commit,start changing branch
-
-                commitTree.setCurrentBranch(branchName);
-                headCommit = commitTree.getHeadCommit();
-                // clear CWD
-                List<String> filenames = plainFilenamesIn(CWD);
-                for(String filename : filenames) {
-                    restrictedDelete(new File(filename));
-                }
-                for(String fileCode : headCommit.filesCode) {
-                    Blob newBlob = readObject(join(Files_DIR, fileCode), Blob.class);
-                    writeContents(join(CWD, newBlob.getFile().getName()), newBlob.getContent());
-                }
-                stagingArea.clear();
-
-                writeObject(Staging_Area_File, stagingArea);
-                writeObject(CommitTree_DIR_File, commitTree);
-                exit(0);
-            } else {
-                message("No such branch exists.");
-                exit(0);
             }
         }
 
-
-
+        // 如果参数格式不符合任何已知的 checkout 形式，则输出错误信息
+        message("Incorrect operands.");
+        exit(0);
     }
+
 
     /**
      * get a file named filename in commit c from blobs and write to CWD
