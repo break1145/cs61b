@@ -239,10 +239,11 @@ public class Repository {
         // add files in stagingArea to updated file list
         for(Blob b : stagingArea) {
             boolean found = false;
-            for(Blob b2 : updatedFiles) {
+            Iterator<Blob> iterator = updatedFiles.iterator();
+            while(iterator.hasNext()) {
+                Blob b2 = iterator.next();
                 if(b.getPath().equals(b2.getPath())) {
-                    updatedFiles.remove(b2);
-                    updatedFiles.add(b);
+                    iterator.remove();  // 使用迭代器的remove方法
                     found = true;
                 }
             }
