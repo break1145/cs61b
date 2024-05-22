@@ -158,7 +158,7 @@ class Utils {
         new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return new File(dir, name).isFile();
+                return new File(dir, name).isFile() && !isIgnored(name);
             }
         };
 
@@ -183,6 +183,31 @@ class Utils {
     }
 
     /* OTHER FILE UTILITIES */
+    // Check if the file name is in the ignore list
+    private static boolean isIgnored(String fileName) {
+        try {
+            File ignoreFile = new File("ignore");
+            if (ignoreFile.exists()) {
+                BufferedReader reader = new BufferedReader(new FileReader(ignoreFile));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (fileName.equals(line.trim())) {
+                        reader.close();
+                        return true;
+                    }
+                }
+                reader.close();
+                // If fileName is not found in ignore list, return false
+                return false;
+            } else {
+                // If ignore.txt doesn't exist, don't ignore any files
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
      *  analogous to the {@link java.nio.file.Paths#get(String, String[])}
