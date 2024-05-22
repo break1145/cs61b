@@ -433,7 +433,7 @@ public class Repository {
 //        for (File b : modified) {
 //            System.out.println(b.getName() + "(modified)");
 //        }
-//        List<String> fileList = Utils.plainFilenamesIn(CWD);
+        List<String> fileList = Utils.plainFilenamesIn(CWD);
 //        for(Blob blob : commitTree.getHeadCommit().files) {
 //            if (!fileList.contains(blob.getFile().getName()) && !removedStagingArea.contains(blob)) {
 //                System.out.println(blob.getFile().getName() + "(deleted)");
@@ -445,24 +445,24 @@ public class Repository {
         //Untracked
         System.out.println("=== Untracked Files ===");
 //        // build file set:
-//        HashSet<String> stagedFiles = new HashSet<>();
-//        for(Blob blob : headCommit.files) {
-//            stagedFiles.add(blob.getFile().getName());
-//        }
-//        for (Blob blob : stagingArea) {
-//            stagedFiles.add(blob.getFile().getName());
-//        }
-//        for (Blob blob : removedStagingArea) {
-//            stagedFiles.add(blob.getFile().getName());
-//        }
-//        for (Blob blob : additionArea) {
-//            stagedFiles.add(blob.getFile().getName());
-//        }
-//        for(String file : fileList) {
-//            if(!stagedFiles.contains(file)) {
-//                System.out.println(file);
-//            }
-//        }
+        HashSet<String> stagedFiles = new HashSet<>();
+        for(Blob blob : headCommit.files) {
+            stagedFiles.add(blob.getFile().getName());
+        }
+        for (Blob blob : stagingArea) {
+            stagedFiles.add(blob.getFile().getName());
+        }
+        for (Blob blob : removedStagingArea) {
+            stagedFiles.add(blob.getFile().getName());
+        }
+        for (Blob blob : additionArea) {
+            stagedFiles.add(blob.getFile().getName());
+        }
+        for(String file : fileList) {
+            if(!stagedFiles.contains(file)) {
+                System.out.println(file);
+            }
+        }
         System.out.println("");
 
     }
@@ -470,7 +470,7 @@ public class Repository {
     public static void checkout(String[] args) {
         if (args == null || args.length < 2) {
             message("Incorrect operands.");
-            exit(0);
+            return;
         }
 
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
@@ -488,7 +488,7 @@ public class Repository {
             } else {
                 randw(filename, headCommit);
             }
-            exit(0);
+            return;
         }
 
         // case 2: checkout [commit id] -- [file name]
@@ -504,15 +504,15 @@ public class Repository {
                 Commit forwardCommit = readObject(join(Commit_DIR, commitID), Commit.class);
                 if(!randw(filename, forwardCommit)) {
                     message("File does not exist in that commit.");
-                    exit(0);
+                    return;
                 } else {
                     add(new File(filename));
                 }
             } else {
                 message("No commit with that id exists.");
-                exit(0);
+                return;
             }
-            exit(0);
+            return;
         }
 
         // case 3: checkout [branch name]
@@ -520,7 +520,7 @@ public class Repository {
             String branchName = args[1];
             if (branchName.equals(commitTree.getCurrentBranch().getBranchName())) {
                 message("No need to checkout the current branch.");
-                exit(0);
+                return;
             } else {
                 List<String> branchList = plainFilenamesIn(Branch_DIR);
                 if (branchList != null && branchList.contains(branchName)) {
@@ -535,7 +535,7 @@ public class Repository {
                         Blob b = new Blob(new File(file));
                         if(!staged.contains(b)) {
                             message("There is an untracked file in the way; delete it, or add and commit it first.");
-                            exit(0);
+                            return;
                         }
                     }
                     // case2 change hasn't been commited
@@ -543,7 +543,7 @@ public class Repository {
                     modified.removeAll(additionArea);
                     for(Blob b : modified) {
                         message("There is an untracked file in the way; delete it, or add and commit it first.");
-                        exit(0);
+                        return;
                     }
                     // case3 all file is tracked and no change to commit,start changing branch
 
@@ -562,17 +562,17 @@ public class Repository {
 
                     writeObject(Staging_Area_File, stagingArea);
                     writeObject(CommitTree_DIR_File, commitTree);
-                    exit(0);
+                    return;
                 } else {
                     message("No such branch exists.");
-                    exit(0);
+                    return;
                 }
             }
         }
 
         // 如果参数格式不符合任何已知的 checkout 形式，则输出错误信息
         message("Incorrect operands.");
-        exit(0);
+        return;
     }
 
 
