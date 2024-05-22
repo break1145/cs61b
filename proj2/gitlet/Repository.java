@@ -53,6 +53,8 @@ public class Repository {
     public static final File Addition_File = join(Staging_Area, "addition.ser");
     public static final File Branch_DIR = join(GITLET_DIR, "branches");
     public static final File Commit_Prefix_Map_File = join(Staging_Area, "commitPrefixMap.ser");
+
+    public static final File Modified_Staging_Area_File = join(Staging_Area, "modifiedStagingArea.ser");
 //    public static final File Tracked_DIR = join(Staging_Area, "tracked");
 //    public static final File Tracked_DIR_File = join(Tracked_DIR, "tracked.ser");
 
@@ -104,6 +106,7 @@ public class Repository {
         writeObject(Removed_Staging_Area_File, removedStagingArea);
         writeObject(Addition_File, additionArea);
         writeObject(Commit_Prefix_Map_File, commitPrefixMap);
+        writeObject(Modified_Staging_Area_File, new HashSet<>());
 
     }
 
@@ -117,14 +120,14 @@ public class Repository {
         }
         // get Head Commit
         Blob blob = new Blob(file);
-        add(blob, false);
+        add(blob);
     }
     /**
      * add blob to staging area and check if any change occured
      * @param blob a blob
      *
      * */
-    private static void add(Blob blob, boolean fromStartCheck) {
+    private static void add(Blob blob) {
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
@@ -145,7 +148,13 @@ public class Repository {
         }
 
         stagingArea.add(blob);
-        if(!fromStartCheck && !commitTree.getHeadCommit().files.contains(blob)) {
+        boolean flag = true;
+        for (Blob b : commitTree.getHeadCommit().files) {
+            if(b.getFile().equals(blob.getFile())) {
+                flag = false;
+            }
+        }
+        if(flag) {
             additionArea.add(blob);
         }
         writeObject(Staging_Area_File, stagingArea);
@@ -154,13 +163,13 @@ public class Repository {
     }
 
     /**
-     * when program starts,call each file in headCCommit with method add, and add change into stagingArea
+     * when program starts,add modified files into "modified area" and removed files into "removed area"
      * */
     public static void startCheck() {
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> blobs = commitTree.getHeadCommit().files;
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        HashSet<File> modifiedStagingArea = readObject(Modified_Staging_Area_File, HashSet.class);
         List<String> fileList = Utils.plainFilenamesIn(CWD);
         Commit headCommit = commitTree.getHeadCommit();
         if (fileList != null) {
@@ -173,15 +182,18 @@ public class Repository {
                 }
             }
         }
-        if (blobs != null) {
-            for (Blob blob : blobs) {
-                // read file in CWD as headCommit's file path
-                if (!removedStagingArea.contains(blob)) {
-                    Blob newBlob = new Blob(blob.getFile());
-                    add(newBlob, true);
-                }
-            }
-        }
+//        if (blobs != null) {
+//            for (Blob blob : blobs) {
+//                // read file in CWD as headCommit's file path
+//                if (!removedStagingArea.contains(blob)) {
+//                    Blob newBlob = new Blob(blob.getFile());
+//                    if (!newBlob.getContent().equals(blob.getContent())) {
+//                        modifiedStagingArea.add(newBlob.getFile());
+//                    }
+//                }
+//            }
+//        }
+//        writeObject(Modified_Staging_Area_File, modifiedStagingArea);
         writeObject(Removed_Staging_Area_File, removedStagingArea);
     }
 
@@ -243,13 +255,13 @@ public class Repository {
             while(iterator.hasNext()) {
                 Blob b2 = iterator.next();
                 if(b.getPath().equals(b2.getPath())) {
-                    iterator.remove();  // 使用迭代器的remove方法
+                    iterator.remove();
                     found = true;
                 }
             }
-            if(!found) {
-                updatedFiles.add(b);
-            }
+
+            updatedFiles.add(b);
+
         }
         // delete all files in removedStagingArea from commit
         for(Blob b : removedStagingArea) {
@@ -384,6 +396,7 @@ public class Repository {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
+        HashSet<File> modified = readObject(Modified_Staging_Area_File, HashSet.class);
 
         Commit headCommit = commitTree.getHeadCommit();
         //branch
@@ -417,19 +430,39 @@ public class Repository {
         //modified but not commit
         System.out.println("=== Modifications Not Staged For Commit ===");
         //modified
+//        for (File b : modified) {
+//            System.out.println(b.getName() + "(modified)");
+//        }
+//        List<String> fileList = Utils.plainFilenamesIn(CWD);
+//        for(Blob blob : commitTree.getHeadCommit().files) {
+//            if (!fileList.contains(blob.getFile().getName()) && !removedStagingArea.contains(blob)) {
+//                System.out.println(blob.getFile().getName() + "(deleted)");
+//            }
+//        }
 
         System.out.println("");
 
         //Untracked
         System.out.println("=== Untracked Files ===");
-        List<String> fileList = Utils.plainFilenamesIn(CWD);
-        for(String file : fileList) {
-            Blob b = new Blob(new File(file));
-            staged.addAll(headCommit.files);
-            if(!staged.contains(b)) {
-                System.out.println(b.getFile().getName());
-            }
-        }
+//        // build file set:
+//        HashSet<String> stagedFiles = new HashSet<>();
+//        for(Blob blob : headCommit.files) {
+//            stagedFiles.add(blob.getFile().getName());
+//        }
+//        for (Blob blob : stagingArea) {
+//            stagedFiles.add(blob.getFile().getName());
+//        }
+//        for (Blob blob : removedStagingArea) {
+//            stagedFiles.add(blob.getFile().getName());
+//        }
+//        for (Blob blob : additionArea) {
+//            stagedFiles.add(blob.getFile().getName());
+//        }
+//        for(String file : fileList) {
+//            if(!stagedFiles.contains(file)) {
+//                System.out.println(file);
+//            }
+//        }
         System.out.println("");
 
     }
@@ -447,8 +480,8 @@ public class Repository {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
         HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
-        // case 1
-
+        // case 1 Takes the version of the file as it exists in the head commit
+        // and puts it in the working directory,and overwrite,mark as unstaged
         if (args[1].equals("--")) {
 
             String filename = args[2];
@@ -456,6 +489,8 @@ public class Repository {
 
             if(!randw(filename, headCommit)) {
                 message("File does not exist in that commit.");
+            } else {
+                randw(filename, headCommit);
             }
             exit(0);
         }
@@ -474,6 +509,8 @@ public class Repository {
                 if(!randw(filename, forwardCommit)) {
                     message("File does not exist in that commit.");
                     exit(0);
+                } else {
+                    add(new File(filename));
                 }
             } else {
                 message("No commit with that id exists");
