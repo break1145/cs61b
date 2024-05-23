@@ -42,18 +42,24 @@ public class CommitTree implements Serializable {
      * @return a CTreeNode with value of commit in the tree. <p></p>
      *          null if no node satisfy with that
      * */
-    private CTreeNode getNodebyCommit(CTreeNode node,Commit commit) {
+    private CTreeNode getNodebyCommit(CTreeNode node, Commit commit) {
+        if (node == null) {
+            return null;
+        }
         if (node.val.hashcode().equals(commit.hashcode())) {
             return node;
         }
-        if (node == null || node.children == null) {
-            return null;
-        }
-        for(CTreeNode child : node.children) {
-            return getNodebyCommit(child, commit);
+        if (node.children != null) {
+            for (CTreeNode child : node.children) {
+                CTreeNode result = getNodebyCommit(child, commit);
+                if (result != null) {
+                    return result;
+                }
+            }
         }
         return null;
     }
+
     /**
      * read branch from file and update to commitTree
      * promise to get latest branch
@@ -112,29 +118,13 @@ public class CommitTree implements Serializable {
             System.out.print("  ");
         }
         System.out.println(node.val);
+        System.out.println("CHILDREN: " + node.children);
+        System.out.println("PARENTS: " + node.parents);
 
         for (CTreeNode child : node.children) {
             printTreeRecursive(child, depth + 1);
         }
     }
-//    public void printTreefromHead() {
-//        CTreeNode node = this.head;
-//        while(node != null) {
-//            Utils.message("===");
-//            Utils.message("commit "+ node.val.hashcode());
-//            // 使用formatter输出标准日期
-//            Formatter formatter = new Formatter(Locale.ENGLISH);
-//            Date currentDate = new Date();
-//            String formattedDate = String.valueOf(formatter.format("Date: %ta %tb %td %tT %tY %tz", currentDate, currentDate, currentDate, currentDate, currentDate, currentDate));
-//            Utils.message(formattedDate);
-//            Utils.message(node.val.getMessage());
-//            Utils.message("");
-//            if(node.parents.isEmpty()) {
-//                break;
-//            }
-//            node = node.parents.get(0);
-//        }
-//    }
 
     /**
      * make the given commit be the parent of 'origin'.
