@@ -218,7 +218,7 @@ public class Repository {
 
         // delete file in CWD
         for(Blob b : removedStagingArea) {
-            Utils.restrictedDelete(b.getFile());
+            Utils.restrictedDelete(b.getFile(), false);
         }
 
 
@@ -322,7 +322,7 @@ public class Repository {
         }
         if (isTracked) {
             removedStagingArea.add(blob);
-            restrictedDelete(file);
+            restrictedDelete(file, false);
         }
         if (additionArea.contains(blob)) {
             additionArea.remove(blob);
@@ -552,7 +552,7 @@ public class Repository {
                     // clear CWD
                     List<String> filenames = plainFilenamesIn(CWD);
                     for(String filename : filenames) {
-                        restrictedDelete(new File(filename));
+                        restrictedDelete(new File(filename), false);
                     }
                     for(String fileCode : headCommit.filesCode) {
                         Blob newBlob = readObject(join(Files_DIR, fileCode), Blob.class);
@@ -596,14 +596,31 @@ public class Repository {
      * */
     public static void branch(String branchName) {
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        branch newBranch = new branch(branchName, commitTree.getCurrentBranch().getBranchName());
-        writeObject(join(Branch_DIR, branchName), newBranch);
+        List<String> fileList = plainFilenamesIn(Branch_DIR);
+        if (fileList != null && fileList.contains(branchName)) {
+            message("A branch with that name already exists.");
+        } else {
+            branch newBranch = new branch(branchName, commitTree.getCurrentBranch().getBranchName());
+            writeObject(join(Branch_DIR, branchName), newBranch);
+        }
     }
 
     /**
     */
     public static void removeBranch(String branchName) {
-        restrictedDelete(join(Branch_DIR, branchName));
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        List<String> fileList = plainFilenamesIn(Branch_DIR);
+        if (fileList != null && fileList.contains(branchName)) {
+            if (commitTree.getCurrentBranch().getBranchName().equals(branchName)) {
+                message("Cannot remove the current branch.");
+            } else {
+                restrictedDelete(join(Branch_DIR, branchName), true);
+            }
+        } else {
+            message("A branch with that name does not exist.");
+        }
+
+
     }
 
     /**
@@ -615,7 +632,7 @@ public class Repository {
         // clear CWD
         List<String> filenames = plainFilenamesIn(CWD);
         for(String filename : filenames) {
-            restrictedDelete(new File(filename));
+            restrictedDelete(new File(filename), false);
         }
         // clear stagingArea
         writeObject(Staging_Area_File, new HashSet<Blob>());
@@ -693,6 +710,11 @@ public class Repository {
         Map<File, Blob> curnt_map = buildMapformCommit(currentHead);
         Map<File, Blob> given_map = buildMapformCommit(givenHead);
         Map<File, Blob> split_map = buildMapformCommit(splitPoint);
+        /*
+         * curnt_map[a]:blob in current branch
+         * given_map[b]:blob in given branch
+         * split_map[s]:blob in split branch
+         * */
         Set<Blob> result = new HashSet<>();
         Set<Blob> result_Conflict = new HashSet<>();
         Set<File> deleted = new HashSet<>();
@@ -710,7 +732,7 @@ public class Repository {
             Blob s = split_map.get(item);
             if (curnt_map.containsKey(item) && given_map.containsKey(item) && split_map.containsKey(item)) {
                 // exist in all the commits:
-                if (!a.equals(b)) {
+                if (!a.equals(b) && (a.equals(s) || b.equals(s))) {
                     if (a.equals(s)) {
                         // case 1:
                         result.add(b);
@@ -769,7 +791,7 @@ public class Repository {
         }
         for (File delete : deleted) {
             if (fileList.contains(delete.getName())) {
-                restrictedDelete(delete);
+                restrictedDelete(delete, false);
             }
         }
         /**
@@ -779,7 +801,7 @@ public class Repository {
          * */
         if (!conflictExist) {
             // if there's no conflict: commit changes
-            String commitMessage = String.format("Merged [%s] into [%s]."
+            String commitMessage = String.format("Merged %s into %s."
                     , givenBranch.getBranchName()
                     , currentBranch.getBranchName());
             // build a new commit
