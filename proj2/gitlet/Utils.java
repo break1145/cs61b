@@ -63,8 +63,8 @@ class Utils {
      *  if FILE was deleted, and false otherwise.  Refuses to delete FILE
      *  and throws IllegalArgumentException unless the directory designated by
      *  FILE also contains a directory named .gitlet. */
-    static boolean restrictedDelete(File file) {
-        if (!(new File(file.getParentFile(), ".gitlet")).isDirectory()) {
+    static boolean restrictedDelete(File file, boolean force_delete) {
+        if (!(new File(file.getParentFile(), ".gitlet")).isDirectory() && !force_delete) {
             throw new IllegalArgumentException("not .gitlet working directory");
         }
         if (!file.isDirectory()) {
@@ -79,7 +79,7 @@ class Utils {
      *  to delete FILE and throws IllegalArgumentException unless the
      *  directory designated by FILE also contains a directory named .gitlet. */
     static boolean restrictedDelete(String file) {
-        return restrictedDelete(new File(file));
+        return restrictedDelete(new File(file), false);
     }
 
     /* READING AND WRITING FILE CONTENTS */
@@ -330,6 +330,7 @@ class Utils {
         baos.writeBytes(System.lineSeparator().getBytes());
         baos.writeBytes(content2);
         baos.writeBytes(">>>>>>>".getBytes());
+        baos.writeBytes("\n".getBytes());
         return baos.toByteArray();
     }
 
