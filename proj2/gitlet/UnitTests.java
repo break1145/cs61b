@@ -1,10 +1,13 @@
 package gitlet;
 
 
+import net.sf.saxon.trans.SymbolicName;
 import org.checkerframework.checker.units.qual.C;
 import org.junit.Test;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -189,7 +192,7 @@ public class UnitTests {
     public void testStatus_test12() {
         Repository.initialize();
         Repository.add(new File("f.txt"));
-        Repository.add(new File("g.txt"));
+        Repository.add(new File("h.txt"));
         Repository.status();
 
     }
@@ -318,11 +321,25 @@ public class UnitTests {
         File file = new File("f.txt");
         add(file);
         commit("new file");
-        restrictedDelete(file);
+        restrictedDelete(file, false);
         startCheck();
         remove(file);
         status();
         /**
+         * ec-test01-untracked:
+         * ERROR (incorrect output)
+         * ec-test10-diff-head-working:
+         * FAILED (file text1.txt could not be copied to f.txt)
+         * ec-test10-remote-fetch-push:
+         * ERROR (java gitlet.Main exited with code 1)
+         * ec-test11-diff-branch-working:
+         * FAILED (file text1.txt could not be copied to f.txt)
+         * ec-test11-remote-fetch-pull:
+         * ERROR (java gitlet.Main exited with code 1)
+         * ec-test12-bad-remotes-err:
+         * ERROR (incorrect output)
+         * ec-test12-diff-two-branches:
+         * FAILED (file text1.txt could not be copied to f.txt)
          * test01-init:
          * OK
          * test02-basic-checkout:
@@ -330,7 +347,7 @@ public class UnitTests {
          * test03-basic-log:
          * OK
          * test04-prev-checkout:
-         * ERROR (file wug.txt has incorrect content)
+         * OK
          * test11-basic-status:
          * OK
          * test12-add-status-debug:
@@ -342,17 +359,17 @@ public class UnitTests {
          * test14-add-remove-status:
          * OK
          * test15-remove-add-status:
-         * ERROR (incorrect output)
+         * OK
          * test16-empty-commit-err:
          * OK
          * test17-empty-commit-message-err:
          * OK
          * test18-nop-add:
-         * ERROR (incorrect output)
+         * OK
          * test19-add-missing-err:
          * OK
          * test20-status-after-commit:
-         * ERROR (incorrect output)
+         * OK
          * test21-nop-remove-err:
          * OK
          * test22-remove-deleted-file:
@@ -367,8 +384,9 @@ public class UnitTests {
          * OK
          * test27-unsuccessful-find-err:
          * OK
+         * // TODO
          * test28-checkout-detail:
-         * ERROR (file wug.txt has incorrect content)
+         * ERROR (incorrect output)
          * test29-bad-checkouts-err:
          * ERROR (incorrect output)
          * test30-branches:
@@ -396,9 +414,9 @@ public class UnitTests {
          * test38-bad-resets-err:
          * ERROR (java gitlet.Main exited with code 1)
          * test39-short-uid:
-         * ERROR (file wug.txt has incorrect content)
-         * test40-special-merge-cases:
          * ERROR (incorrect output)
+         * test40-special-merge-cases:
+         * ERROR (java gitlet.Main exited with code 1)
          * test41-no-command-err:
          * ERROR (incorrect output)
          * test42-other-err:
@@ -411,10 +429,284 @@ public class UnitTests {
          * ERROR (java gitlet.Main exited with code 1)
          * test45-normal-status:
          * OK
-         * */
+         *
+         * Ran 51 tests. 21 passed.*/
     }
 
+    @Test
+    public void testCommit_test23() {
+//        initialize();
+//        add(new File("f.txt"));
+//        add(new File("g.txt"));
+//        commit("two new files");
+//        add(new File("h.txt"));
+//        commit("add h");
+        log();
+    }
 
+    @Test
+    public void testCheckout_case1_test28() {
+        initialize();
+        File file = new File("f.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) { // false表示覆盖模式
+            writer.write("version1");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        add(file);
+        commit("version 1");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) { // false表示覆盖模式
+            writer.write("version2");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        add(new File("f.txt"));
+        commit("version 2");
+        status();
+    }
+
+    @Test
+    public void testCheckout_case1_test28_p2() {
+        String[] args = new String[5];
+        args[0] = "checkout";
+        args[1] = "9531dc3342b5f795edeb0e0900a823231c8f1dfc";
+        args[2] = "--";
+        args[3] = "f.txt";
+        checkout(args);
+        startCheck();
+        status();
+    }
+
+    @Test
+    public void testNewStatus() {
+//        log();
+        startCheck();
+        status();
+    }
+
+    @Test
+    public void test29_badCheckout() {
+
+    }
+    @Test
+    public void test30_branch() {
+        initialize();
+        branch("other");
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        write(f.getName(), "wug.txt");
+        write(g.getName(), "notwug.txt");
+        add(f);
+        add(g);
+        commit("main two files");
+//        status();
+        checkout(new String[]{"checkout", "other"});
+        write(f.getName(), "notwug.txt");
+//        write(g.getName(), "notwug2.txt");
+        add(f);
+        commit("Alternative file");
+        System.out.println("OTHER");
+        System.out.println(readContentsAsString(f));
+        if (g.exists()) {
+            System.out.println(readContentsAsString(g));
+        }
+//        status();
+
+        checkout(new String[]{"checkout", "master"});
+        System.out.println("MASTER");
+        System.out.println(readContentsAsString(f));
+        System.out.println(readContentsAsString(g));
+
+        checkout(new String[]{"checkout", "other"});
+        System.out.println("OTHER");
+        System.out.println(readContentsAsString(f));
+        if (g.exists()) {
+            System.out.println(readContentsAsString(g));
+        }
+    }
+    public void write(String filename, String content) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, false))) { // true表示追加模式
+            writer.write(content);
+            writer.newLine(); // 添加新行
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testP() {
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        commitTree.printTree();
+
+    }
+
+    @Test
+    public void test33_merge_no_conflict() {
+        initialize();
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        write("f.txt", "wug.txt");
+        write("g.txt", "notwug.txt");
+        add(f);
+        add(g);
+        commit("Two files");
+        branch("other");
+        File h = new File("h.txt");
+        write("h.txt", "wug2.txt");
+        add(h);
+        remove(g);
+        commit("Add h.txt and remove g.txt");
+        checkout(new String[]{"checkout", "other"});
+        remove(f);
+        File k = new File("k.txt");
+        write("k.txt", "wug3.txt");
+        add(k);
+        commit("Add k.txt and remove f.txt");
+        checkout(new String[]{"checkout", "master"});
+        merge(readObject(join(Branch_DIR, "other"), branch.class));
+        List<String> fileList = plainFilenamesIn(CWD);
+        System.out.println(fileList);
+        System.out.println("f.txt exists: "+ f.exists());
+        if (f.exists()) {
+            System.out.println("k contents: "+ readContentsAsString(f));
+        }
+        System.out.println("g.txt exists: "+ g.exists());
+        if (g.exists()) {
+            System.out.println("k contents: "+ readContentsAsString(g));
+        }
+        System.out.println("h exists: "+ h.exists());
+        if (h.exists()) {
+            System.out.println("h contents: "+ readContentsAsString(h));
+        }
+        System.out.println("k exists: "+ k.exists());
+        if (k.exists()) {
+            System.out.println("k contents: "+ readContentsAsString(k));
+        }
+        log();
+
+
+    }
+    @Test
+    public void test_part_status() {
+        status();
+        global_log();
+    }
+
+    @Test
+    public void test34_merge_with_conflict() {
+        initialize();
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        File h = new File("h.txt");
+        File k = new File("k.txt");
+        /**/
+        restrictedDelete(f.getName());
+        restrictedDelete(g.getName());
+        restrictedDelete(h.getName());
+        restrictedDelete(k.getName());
+        /**/
+        write("f.txt", "wug.txt");
+        write("g.txt", "notwug.txt");
+        add(f);
+        add(g);
+        commit("Two files");
+        branch("other");
+
+        write("h.txt", "wug2.txt");
+        add(h);
+        remove(g);
+        write("f.txt", "wug2.txt");
+        add(f);
+        commit("Add h.txt and remove g.txt, and change f.txt");
+        status();
+
+        message("----------------------");
+        checkout(new String[]{"checkout", "other"});
+        write("f.txt", "notwug.txt");
+        add(f);
+        write("k.txt", "wug3.txt");
+        add(k);
+        commit("Add k.txt and modify f.txt");
+        checkout(new String[]{"checkout", "master"});
+        message("----------------------");
+        log();
+        merge(readObject(join(Branch_DIR, "other"), branch.class));
+        message("");
+        System.out.println("MASTER LOG AFTER MERGE");
+        message("");
+        log();
+        status();
+        /*debug*/
+        System.out.println("f.txt exists: "+ f.exists());
+        if (f.exists()) {
+            System.out.println("f contents: \n"+ readContentsAsString(f));
+        }
+        System.out.println("g.txt exists: "+ g.exists());
+        if (g.exists()) {
+            System.out.println("g contents: \n"+ readContentsAsString(g));
+        }
+        System.out.println("h exists: "+ h.exists());
+        if (h.exists()) {
+            System.out.println("h contents: \n"+ readContentsAsString(h));
+        }
+        System.out.println("k exists: "+ k.exists());
+        if (k.exists()) {
+            System.out.println("k contents: \n"+ readContentsAsString(k));
+        }
+        /*debug*/
+        /*
+         * branch master: add h remove g change f
+         * branch other : add k modify f
+         * after merge: add h add k remove g ; f conflict
+         * file f:
+         *  in branch master [wug2.txt]
+         *  in branch other  [notwug.txt]
+         * file g:
+         *  deleted
+         * file h:
+         *  wug2.txt
+         * file k:
+         *  wug3.txt
+         * */
+    }
+    @Test
+    public void testGetSplitPoint() {
+        initialize();
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        File h = new File("h.txt");
+        File k = new File("k.txt");
+        /*reset files*/
+        restrictedDelete(f.getName());
+        restrictedDelete(g.getName());
+        restrictedDelete(h.getName());
+        restrictedDelete(k.getName());
+        /**/
+        write("f.txt", "wug.txt");
+        write("g.txt", "notwug.txt");
+        add(f);
+        add(g);
+        commit("Two files");
+        branch("other");
+        write("h.txt", "wug2.txt");
+        add(h);
+        remove(g);
+        commit("Add h.txt and remove g.txt");
+        checkout(new String[]{"checkout", "other"});
+        write("f.txt", "notwug.txt");
+        add(f);
+        write("k.txt", "wug3.txt");
+        add(k);
+        commit("Add k.txt and modify f.txt");
+        checkout(new String[]{"checkout", "master"});
+        Commit splitPoint = getSplitPoint("master", "other");
+        message(splitPoint.getHashCode());
+        global_log();
+        for (Blob blob : splitPoint.files) {
+            message(blob.getFile().getName());
+            message(new String(blob.getContent()));
+        }
+    }
 }
 
 
