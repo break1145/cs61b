@@ -2,6 +2,7 @@ package gitlet;
 
 
 import java.io.File;
+import java.util.List;
 
 
 import static gitlet.Repository.*;
@@ -64,6 +65,11 @@ public class Main {
                 }
                 break;
             case "merge":
+                List<String> branchList = plainFilenamesIn(Branch_DIR);
+                if (!branchList.contains(args[1])) {
+                    message("A branch with that name does not exist.");
+                    return;
+                }
                 branch given = readObject(join(Branch_DIR, args[1]), branch.class);
                 try {
                     Repository.merge(given);

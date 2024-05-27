@@ -665,8 +665,6 @@ public class Repository {
      * @param givenBranch branch to be merged to current branch
      * */
     public static void merge(branch givenBranch) throws Exception {
-        //TODO: failure case 4/5
-
         // failure case2: branch not exist
         List<String> branchList = plainFilenamesIn(Branch_DIR);
         if (!branchList.contains(givenBranch.getBranchName())) {
@@ -692,8 +690,6 @@ public class Repository {
             message("Cannot merge a branch with itself.");
             return;
         }
-        //
-        // TODO: check failure cases
         // failure case1: uncommited change
         HashSet<Blob> staging_Area = readObject(Staging_Area_File, HashSet.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
@@ -703,13 +699,21 @@ public class Repository {
         }
 
 
-        // merge
         // build Map<File, Blob> for compare file content in three commits:split,current and given
         Commit currentHead = commitTree.getHeadCommit();
         Commit givenHead = givenBranch.getHeadCommit();
         Map<File, Blob> curnt_map = buildMapformCommit(currentHead);
         Map<File, Blob> given_map = buildMapformCommit(givenHead);
         Map<File, Blob> split_map = buildMapformCommit(splitPoint);
+        List<String> fileList = plainFilenamesIn(CWD);
+        // check failure case 5:
+        for (String filename : fileList) {
+            if (!curnt_map.containsKey(filename)) {
+                message("There is an untracked file in the way; delete it, or add and commit it first.");
+                return;
+            }
+        }
+        // merge
         /*
          * curnt_map[a]:blob in current branch
          * given_map[b]:blob in given branch
@@ -778,7 +782,6 @@ public class Repository {
                 }
             }
         }
-        //TODO: modifiy file in workspace and delete file
         /**
          * for blob in result:
          *     checkout blob
@@ -787,7 +790,6 @@ public class Repository {
          *     delete file from workspace
          *
          * */
-        List<String> fileList = plainFilenamesIn(CWD);
         for (Blob blob: result) {
             writeContents(blob.getFile(), blob.getContent());
         }
@@ -827,7 +829,6 @@ public class Repository {
             writeObject(Addition_File,new HashSet<>());
         } else {
             // wait until conflict is handled
-            // TODO: fill in rest code
             message("Encountered a merge conflict");
             for (Blob blob : result_Conflict) {
                 writeContents(blob.getFile(), blob.getContent());

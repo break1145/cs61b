@@ -287,6 +287,7 @@ class Utils {
     public static void printCommit(Commit commit) {
         System.out.println("===");
         System.out.println("commit "+ commit.hashcode());
+//        System.out.println("commit " + "123456 ");
 
         Formatter formatter = new Formatter(Locale.ENGLISH);
         Date currentDate = commit.getCurrentDate();
@@ -294,6 +295,8 @@ class Utils {
         System.out.println(formattedDate);
         System.out.println(commit.getMessage());
         System.out.println("");
+
+
     }
 
     /**

@@ -622,9 +622,7 @@ public class UnitTests {
         write("f.txt", "wug2.txt");
         add(f);
         commit("Add h.txt and remove g.txt, and change f.txt");
-        status();
 
-        message("----------------------");
         checkout(new String[]{"checkout", "other"});
         write("f.txt", "notwug.txt");
         add(f);
@@ -632,16 +630,17 @@ public class UnitTests {
         add(k);
         commit("Add k.txt and modify f.txt");
         checkout(new String[]{"checkout", "master"});
-        message("----------------------");
+
         log();
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        Commit master_head = commitTree.getHeadCommit();
         try {
             merge(readObject(join(Branch_DIR, "other"), branch.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        message("");
-        System.out.println("MASTER LOG AFTER MERGE");
-        message("");
+        Commit current_head = commitTree.getHeadCommit();
+
         log();
         status();
         /*debug*/
@@ -661,6 +660,8 @@ public class UnitTests {
         if (k.exists()) {
             System.out.println("k contents: \n"+ readContentsAsString(k));
         }
+
+        System.out.println("current head = master head:" + master_head.hashcode().equals(current_head.hashcode()));
         /*debug*/
         /*
          * branch master: add h remove g change f
@@ -718,18 +719,7 @@ public class UnitTests {
 
     @Test
     public void test35_merge_with_rm_conflict() {
-        // remove in one and modify in the other
-        /*
-        *
-> log
-${COMMIT_LOG}
-===
-commit ${MASTER_HEAD}
-${ARBLINES}
-<<<*
-        *
-        *
-        * */
+
     }
 }
 
