@@ -13,6 +13,9 @@ import java.util.*;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 public class UnitTests {
     @org.junit.Test
     public void testAddCommit() {
@@ -527,7 +530,7 @@ public class UnitTests {
     public void write(String filename, String content) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, false))) { // true表示追加模式
             writer.write(content);
-            writer.newLine(); // 添加新行
+//            writer.newLine(); // 添加新行
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -716,11 +719,83 @@ public class UnitTests {
             message(new String(blob.getContent()));
         }
     }
-
     @Test
     public void test35_merge_with_rm_conflict() {
 
     }
+    @Test
+    public void test36_merge_parent2() {
+        initialize();
+        branch("B1");
+        branch("B2");
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        File h = new File("h.txt");
+        /**/
+        restrictedDelete(f.getName());
+        restrictedDelete(g.getName());
+        restrictedDelete(h.getName());
+
+        checkout(new String[]{"checkout", "B1"});
+        write("h.txt", "This is a wug.\n");
+        add(h);
+        commit("Add h.txt");
+
+        checkout(new String[]{"checkout", "B2"});
+        write("f.txt", "This is a wug.\n");
+        add(f);
+        commit("f.txt added");
+
+        branch("C1");
+        write("g.txt", "This is not a wug.\n");
+        add(g);
+        remove(f);
+        commit("Add g.txt, remove f.txt");
+        assertEquals("This is not a wug.\n", readContentsAsString(g));
+        assertFalse(f.exists());
+        assertFalse(h.exists());
+
+        checkout(new String[]{"checkout", "B1"});
+        // B1: add h
+        assertEquals("This is a wug.\n", readContentsAsString(h));
+        assertFalse(f.exists());
+        assertFalse(g.exists());
+        try {
+            // merge C1
+        // C1: add f
+        // B2: add f, add g, rm f
+            merge(readObject(join(Branch_DIR, "C1"), branch.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals("This is a wug.\n", readContentsAsString(h));
+        assertEquals("This is a wug.\n", readContentsAsString(f));
+        assertFalse(g.exists());
+
+        try {
+            // merge B2
+        // B2(head): g, h, rm(f)
+        // B1(head): (no)g, h, f
+            merge(readObject(join(Branch_DIR, "B2"), branch.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        assertFalse(f.exists());
+        assertEquals("This is not a wug.\n", readContentsAsString(g));
+        assertEquals("This is a wug.\n", readContentsAsString(h));
+        /*
+        *
+        *
+        * B2--B2-
+        *   \    \
+        *    C1   \
+        *      \   \
+        * B1---B1---B1
+        *
+        *
+        * */
+    }
+
 }
 
 

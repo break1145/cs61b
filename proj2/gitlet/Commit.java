@@ -30,6 +30,7 @@ public class Commit implements Serializable , Dumpable{
     public HashSet<String> filesCode;
     /** parent commit */
     public List<String> parentCodes;
+    public boolean isMergedCommit;
 
     public Commit(String message) {
         this.message = message;
@@ -47,6 +48,7 @@ public class Commit implements Serializable , Dumpable{
         this.currentDate = new Date();
         this.message = message;
         this.hashCode = this.getHashCode();
+        this.isMergedCommit = false;
     }
     public Commit(Commit c) {
         this.message = c.message;
@@ -55,6 +57,7 @@ public class Commit implements Serializable , Dumpable{
         this.files = c.files;
         this.filesCode = c.filesCode;
         this.parentCodes = c.parentCodes;
+        this.isMergedCommit = false;
     }
     /**
      * @return 返回当前分支的父提交
@@ -101,6 +104,12 @@ public class Commit implements Serializable , Dumpable{
 
     public String getMessage () {
         return message;
+    }
+    public void setIsMergedCommit(boolean flag) {
+        this.isMergedCommit = flag;
+    }
+    public boolean isMergedCommit() {
+        return this.isMergedCommit;
     }
 
     @Override

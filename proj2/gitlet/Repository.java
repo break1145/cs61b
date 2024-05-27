@@ -708,7 +708,7 @@ public class Repository {
         List<String> fileList = plainFilenamesIn(CWD);
         // check failure case 5:
         for (String filename : fileList) {
-            if (!curnt_map.containsKey(filename)) {
+            if (!curnt_map.containsKey(new File(filename))) {
                 message("There is an untracked file in the way; delete it, or add and commit it first.");
                 return;
             }
@@ -803,40 +803,40 @@ public class Repository {
          * make new commit to current branch's head
          * AND if there is a conflict: build a new file with conflict files, put off commit!
          * */
-        if (!conflictExist) {
-            // if there's no conflict: commit changes
-            String commitMessage = String.format("Merged %s into %s."
-                    , givenBranch.getBranchName()
-                    , currentBranch.getBranchName());
-            // build a new commit
-            Commit commit = new Commit(commitMessage);
-            commit.parentCodes.add(currentHead.hashcode());
-            commit.parentCodes.add(givenHead.hashcode());
-
-            for (Blob blob : result) {
-                commit.files.add(blob);
-                commit.filesCode.add(blob.getShaCode());
-            }
-            commit.save();
-
-            // update commitTree
-            commitTree.add_Commit(commit);
-            commitTree.addParent(commit, givenHead);
-            writeObject(CommitTree_DIR_File, commitTree);
-            // clear all stagingAreas
-            writeObject(Staging_Area_File,new HashSet<>());
-            writeObject(Removed_Staging_Area_File, new HashSet<>());
-            writeObject(Addition_File,new HashSet<>());
-        } else {
-            // wait until conflict is handled
+        if (conflictExist) {
             message("Encountered a merge conflict");
             for (Blob blob : result_Conflict) {
                 writeContents(blob.getFile(), blob.getContent());
             }
-            // stage conflict file
-            writeObject(Staging_Area_File, new HashSet<>(result_Conflict));
-
         }
+        // if there's no conflict: commit changes
+        String commitMessage = String.format("Merged %s into %s."
+                , givenBranch.getBranchName()
+                , currentBranch.getBranchName());
+        // build a new commit
+        Commit commit = new Commit(commitMessage);
+        commit.parentCodes.add(currentHead.hashcode());
+        commit.parentCodes.add(givenHead.hashcode());
+        commit.setIsMergedCommit(true);
+
+        for (Blob blob : result) {
+            commit.files.add(blob);
+            commit.filesCode.add(blob.getShaCode());
+        }
+        commit.save();
+
+        // update commitTree
+        commitTree.add_Commit(commit);
+        commitTree.addParent(commit, givenHead);
+        writeObject(CommitTree_DIR_File, commitTree);
+        // clear all stagingAreas
+        writeObject(Staging_Area_File,new HashSet<>());
+        writeObject(Removed_Staging_Area_File, new HashSet<>());
+        writeObject(Addition_File,new HashSet<>());
+
+
+
+
     }
 
 

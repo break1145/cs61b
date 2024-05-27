@@ -8,13 +8,6 @@ import static gitlet.Utils.*;
 public class branch implements Serializable {
     public List<String> commitList;
     private String branchName;
-//    private String startCommitID;
-//    public branch(String branchName, String startCommit) {
-//        this.branchName = branchName;
-//        commitList = new ArrayList<String>();
-//        startCommitID = startCommit;
-//        commitList.add(startCommit);
-//    }
     public branch(String branchName, String parentBranchName) {
         this.branchName = branchName;
         if (parentBranchName == null) {
