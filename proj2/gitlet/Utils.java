@@ -157,14 +157,14 @@ class Utils {
     private static final FilenameFilter PLAIN_FILES =
         new FilenameFilter() {
         // if need implement status-untracked:
-//            @Override
-//            public boolean accept(File dir, String name) {
-//                return new File(dir, name).isFile() && !isIgnored(name);
-//            }
             @Override
             public boolean accept(File dir, String name) {
-                return new File(dir, name).isFile();
+                return new File(dir, name).isFile() && !isIgnored(name);
             }
+//            @Override
+//            public boolean accept(File dir, String name) {
+//                return new File(dir, name).isFile();
+//            }
 
 
         };
@@ -303,29 +303,61 @@ class Utils {
      *
      * @return a LCA Commit
      * */
+//    public static Commit getSplitPoint(String branchA, String branchB) {
+//        branch bA = readObject(join(Branch_DIR, branchA), branch.class);
+//        branch bB = readObject(join(Branch_DIR, branchB), branch.class);
+//        // use new to avoid changing original list
+//        List<String> bA_Commits = new ArrayList<>(bA.commitList);
+//        List<String> bB_Commits = new ArrayList<>(bB.commitList);
+//        Collections.reverse(bA_Commits);
+//        Collections.reverse(bB_Commits);
+//
+//        // use a map to avoid nested loop
+//        Map<String, Integer> ba_Map = new HashMap<>();
+//        for(int i = 0;i < bA_Commits.size();i++) {
+//            ba_Map.put(bA_Commits.get(i), i);
+//        }
+//        for(String itemB : bB_Commits) {
+//            if(ba_Map.containsKey(itemB)) {
+////                System.out.println(itemB);
+//                return readObject(join(Commit_DIR, itemB), Commit.class);
+//            }
+//        }
+//        // not found
+//        return null;
+//    }
     public static Commit getSplitPoint(String branchA, String branchB) {
         branch bA = readObject(join(Branch_DIR, branchA), branch.class);
         branch bB = readObject(join(Branch_DIR, branchB), branch.class);
-        // use new to avoid changing original list
-        List<String> bA_Commits = new ArrayList<>(bA.commitList);
-        List<String> bB_Commits = new ArrayList<>(bB.commitList);
-        Collections.reverse(bA_Commits);
-        Collections.reverse(bB_Commits);
-
-        // use a map to avoid nested loop
-        Map<String, Integer> ba_Map = new HashMap<>();
-        for(int i = 0;i < bA_Commits.size();i++) {
-            ba_Map.put(bA_Commits.get(i), i);
+        List<Commit> aOrb = new ArrayList<>();
+        List<Commit> aAndb = new ArrayList<>();
+        for (String commitID : bA.commitList) {
+            Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
+            aOrb.add(commit);
+            //TODO: if commit is merged commit: add the commit's all parents
+            //add attribute IsMergedCommit to Class Commit
+            //TODO
         }
-        for(String itemB : bB_Commits) {
-            if(ba_Map.containsKey(itemB)) {
-//                System.out.println(itemB);
-                return readObject(join(Commit_DIR, itemB), Commit.class);
+        for (String commitID : bB.commitList) {
+            Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
+            aOrb.add(commit);
+        }
+        for (Commit commit : aOrb) {
+            if (bA.commitList.contains(commit.hashcode()) && bB.commitList.contains(commit.hashcode())) {
+                aAndb.add(commit);
             }
         }
-        // not found
-        return null;
+        Collections.sort(aAndb, new Comparator<Commit>() {
+            @Override
+            public int compare(Commit c1, Commit c2) {
+                return c1.getCurrentDate().compareTo(c2.getCurrentDate());
+            }
+        });
+
+        return aAndb.get(aAndb.size() - 1);
     }
+
+
 
     /**
      * build a new blob with conflicted content
