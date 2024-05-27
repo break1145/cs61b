@@ -156,10 +156,19 @@ class Utils {
     /** Filter out all but plain files. */
     private static final FilenameFilter PLAIN_FILES =
         new FilenameFilter() {
+//            @Override
+//            public boolean accept(File dir, String name) {
+//                return new File(dir, name).isFile() && !isIgnored(name);
+//            }
+
+            // before pull: comment codes above,and comment codes below
+
             @Override
             public boolean accept(File dir, String name) {
                 return new File(dir, name).isFile() && !isIgnored(name);
             }
+
+
         };
 
     /** Returns a list of the names of all plain files in the directory DIR, in
@@ -200,7 +209,7 @@ class Utils {
                 // If fileName is not found in ignore list, return false
                 return false;
             } else {
-                // If ignore.txt doesn't exist, don't ignore any files
+                // If ignore doesn't exist, don't ignore any files
                 return false;
             }
         } catch (IOException e) {
