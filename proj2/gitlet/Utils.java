@@ -156,16 +156,14 @@ class Utils {
     /** Filter out all but plain files. */
     private static final FilenameFilter PLAIN_FILES =
         new FilenameFilter() {
+        // if need implement status-untracked:
 //            @Override
 //            public boolean accept(File dir, String name) {
 //                return new File(dir, name).isFile() && !isIgnored(name);
 //            }
-
-            // before pull: comment codes above,and comment codes below
-
             @Override
             public boolean accept(File dir, String name) {
-                return new File(dir, name).isFile() && !isIgnored(name);
+                return new File(dir, name).isFile();
             }
 
 
