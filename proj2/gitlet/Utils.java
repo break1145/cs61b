@@ -317,6 +317,22 @@ class Utils {
         return null;
     }
 
+    /**
+     * build a new blob with conflicted content
+     * */
+    public static Blob mergeConflict(Blob current, Blob given) throws Exception {
+        if (current == null && given == null) {
+            throw new NullPointerException("current and given blobs cannot be null at the same time");
+        }
+        Blob merged = new Blob();
+
+        byte[] currentContent = current != null ? current.getContent() : new byte[0];
+        byte[] givenContent = given != null ? given.getContent() : new byte[0];
+
+        merged.setFile(current != null ? current.getFile() : given.getFile());
+        merged.setContent(mergeFilewithConflict(currentContent, givenContent));
+        return merged;
+    }
 
     /**
      *TODO: PASS
@@ -370,14 +386,6 @@ class Utils {
         }
         return result_map;
     }
-    /**
-     * build a new blob with conflicted content
-     * */
-    public static Blob mergeConflict(Blob current, Blob given) {
-        Blob merged = new Blob();
-        merged.setFile(current.getFile());
-        merged.setContent(mergeFilewithConflict(current.getContent(), given.getContent()));
-        return merged;
-    }
+
 }
 

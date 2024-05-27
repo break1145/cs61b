@@ -563,7 +563,11 @@ public class UnitTests {
         add(k);
         commit("Add k.txt and remove f.txt");
         checkout(new String[]{"checkout", "master"});
-        merge(readObject(join(Branch_DIR, "other"), branch.class));
+        try {
+            merge(readObject(join(Branch_DIR, "other"), branch.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         List<String> fileList = plainFilenamesIn(CWD);
         System.out.println(fileList);
         System.out.println("f.txt exists: "+ f.exists());
@@ -630,7 +634,11 @@ public class UnitTests {
         checkout(new String[]{"checkout", "master"});
         message("----------------------");
         log();
-        merge(readObject(join(Branch_DIR, "other"), branch.class));
+        try {
+            merge(readObject(join(Branch_DIR, "other"), branch.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         message("");
         System.out.println("MASTER LOG AFTER MERGE");
         message("");
@@ -706,6 +714,22 @@ public class UnitTests {
             message(blob.getFile().getName());
             message(new String(blob.getContent()));
         }
+    }
+
+    @Test
+    public void test35_merge_with_rm_conflict() {
+        // remove in one and modify in the other
+        /*
+        *
+> log
+${COMMIT_LOG}
+===
+commit ${MASTER_HEAD}
+${ARBLINES}
+<<<*
+        *
+        *
+        * */
     }
 }
 

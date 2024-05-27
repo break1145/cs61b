@@ -445,24 +445,24 @@ public class Repository {
         //Untracked
         System.out.println("=== Untracked Files ===");
 //        // build file set:
-        HashSet<String> stagedFiles = new HashSet<>();
-        for(Blob blob : headCommit.files) {
-            stagedFiles.add(blob.getFile().getName());
-        }
-        for (Blob blob : stagingArea) {
-            stagedFiles.add(blob.getFile().getName());
-        }
-        for (Blob blob : removedStagingArea) {
-            stagedFiles.add(blob.getFile().getName());
-        }
-        for (Blob blob : additionArea) {
-            stagedFiles.add(blob.getFile().getName());
-        }
-        for(String file : fileList) {
-            if(!stagedFiles.contains(file)) {
-                System.out.println(file);
-            }
-        }
+//        HashSet<String> stagedFiles = new HashSet<>();
+//        for(Blob blob : headCommit.files) {
+//            stagedFiles.add(blob.getFile().getName());
+//        }
+//        for (Blob blob : stagingArea) {
+//            stagedFiles.add(blob.getFile().getName());
+//        }
+//        for (Blob blob : removedStagingArea) {
+//            stagedFiles.add(blob.getFile().getName());
+//        }
+//        for (Blob blob : additionArea) {
+//            stagedFiles.add(blob.getFile().getName());
+//        }
+//        for(String file : fileList) {
+//            if(!stagedFiles.contains(file)) {
+//                System.out.println(file);
+//            }
+//        }
         System.out.println("");
 
     }
@@ -664,7 +664,7 @@ public class Repository {
      * details are shown in /gitlet-design.md
      * @param givenBranch branch to be merged to current branch
      * */
-    public static void merge(branch givenBranch) {
+    public static void merge(branch givenBranch) throws Exception {
         //TODO: failure case 4/5
 
         // failure case2: branch not exist
@@ -766,14 +766,16 @@ public class Repository {
                     deleted.add(item);
                 } else if (b != null && b.equals(s)) {
                     deleted.add(item);
-                } else {
+                } else if ((a != null && !a.equals(s)) || (b != null && !b.equals(s))) {
                     // changed in one and deleted in the other
+                    // a or b != null and != s
                     result_Conflict.add(mergeConflict(a, b));
                     conflictExist = true;
+                } else {
+                    // both deleted in two branches
+                    // item in s not in a or b
+                    deleted.add(item);
                 }
-            } else {
-                // both deleted in two branches
-
             }
         }
         //TODO: modifiy file in workspace and delete file
