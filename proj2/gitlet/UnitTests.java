@@ -919,6 +919,42 @@ public class UnitTests {
         }
     }
 
+    @Test
+    public void test25() throws InterruptedException {
+        initialize();
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        File h = new File("h.txt");
+        File k = new File("k.txt");
+        /**/
+        restrictedDelete(f.getName());
+        restrictedDelete(g.getName());
+        restrictedDelete(h.getName());
+        restrictedDelete(k.getName());
+        write("f.txt", "This is a wug.\n");
+        write("g.txt", "This is not a wug.\n");
+        add(f);
+        add(g);
+        commit("Two files");
+        remove(f);
+        commit("rm f");
+        write("f.txt", "This is not a wug.\n");
+        add(f);
+
+        commit("Two files");
+        log();
+        find("Two files");
+    }
+
+    @Test
+    public void test25_() {
+//        find("Two files");
+        List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
+        for(String commitID : commitList) {
+            Commit currentCommit = readObject(join(Commit_DIR, commitID), Commit.class);
+            System.out.println(currentCommit.getMessage());
+        }
+    }
 }
 
 
