@@ -93,6 +93,9 @@ public class Commit implements Serializable , Dumpable{
         List<Object> ls = new LinkedList<>();
         ls.add(this.message);
         ls.add(this.currentDate.toString());
+        Random random = new Random();
+        Integer randomInt = random.nextInt();
+        ls.add(randomInt.toString());
         return sha1(ls);
     }
     public String hashcode() {
