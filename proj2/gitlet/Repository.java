@@ -1,21 +1,19 @@
 package gitlet;
 
 
-
 import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static gitlet.Utils.*;
 import static java.lang.System.exit;
 
-// TODO: any imports you need here
 
-/** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
+/**
+ * Represents a gitlet repository.
+ * <p>
+ * does at a high level.
  *
- *  @author break
+ * @author break
  */
 public class Repository {
     /** File structure
@@ -33,35 +31,35 @@ public class Repository {
      *
      * */
     /**
-     * TODO: add instance variables here.
+     *
      *
      * List all instance variables of the Repository class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided two examples for you.
      */
-    /** The current working directory. */
+    /**
+     * The current working directory.
+     */
     public static final File CWD = new File(System.getProperty("user.dir"));
-    /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final File Staging_Area = join(GITLET_DIR, "staging");
-    public static final File Staging_Area_File = join(Staging_Area, "stagingArea.ser");
-    public static final File Removed_Staging_Area_File = join(Staging_Area, "removed.ser");
-    public static final File Commit_DIR = join(GITLET_DIR, "commits");
-    public static final File CommitTree_DIR = join(Commit_DIR, "commitTree");
-    public static final File CommitTree_DIR_File = join(CommitTree_DIR, "commitTree.ser");
-    public static final File Files_DIR = join(GITLET_DIR, "blobs");
-
-    public static final File Addition_File = join(Staging_Area, "addition.ser");
-    public static final File Branch_DIR = join(GITLET_DIR, "branches");
-    public static final File Commit_Prefix_Map_File = join(Staging_Area, "commitPrefixMap.ser");
-
-    public static final File Modified_Staging_Area_File = join(Staging_Area, "modifiedStagingArea.ser");
+    /**
+     * The .gitlet directory.
+     */
+    public static final File GITLET_DIR = join(CWD , ".gitlet");
+    public static final File Staging_Area = join(GITLET_DIR , "staging");
+    public static final File Staging_Area_File = join(Staging_Area , "stagingArea.ser");
+    public static final File Removed_Staging_Area_File = join(Staging_Area , "removed.ser");
+    public static final File Addition_File = join(Staging_Area , "addition.ser");
+    public static final File Commit_Prefix_Map_File = join(Staging_Area , "commitPrefixMap.ser");
+    public static final File Modified_Staging_Area_File = join(Staging_Area , "modifiedStagingArea.ser");
+    public static final File Commit_DIR = join(GITLET_DIR , "commits");
+    public static final File CommitTree_DIR = join(Commit_DIR , "commitTree");
+    public static final File CommitTree_DIR_File = join(CommitTree_DIR , "commitTree.ser");
+    public static final File Files_DIR = join(GITLET_DIR , "blobs");
+    public static final File Branch_DIR = join(GITLET_DIR , "branches");
 //    public static final File Tracked_DIR = join(Staging_Area, "tracked");
 //    public static final File Tracked_DIR_File = join(Tracked_DIR, "tracked.ser");
 
-    /* TODO: fill in the rest of this class. */
-
-    public static void setupFileFolder() {
+    public static void setupFileFolder () {
         GITLET_DIR.mkdir();
         Staging_Area.mkdir();
         Commit_DIR.mkdir();
@@ -71,11 +69,11 @@ public class Repository {
     }
 
     /**
-     *  initialize the gitlet repository and make an initial commit.<p>
-     *  if folder '.gitlet' already exists, abort error messages and exit.
-     * */
-    public static void initialize() {
-        if(GITLET_DIR.isDirectory()) {
+     * initialize the gitlet repository and make an initial commit.<p>
+     * if folder '.gitlet' already exists, abort error messages and exit.
+     */
+    public static void initialize () {
+        if (GITLET_DIR.isDirectory()) {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
             exit(0);
         }
@@ -86,7 +84,7 @@ public class Repository {
         HashSet<Blob> removedStagingArea = new HashSet<>();
         HashSet<Blob> additionArea = new HashSet<>();
         HashMap<String, String> commitPrefixMap = new HashMap<>();
-        writeObject(Commit_Prefix_Map_File, commitPrefixMap);
+        writeObject(Commit_Prefix_Map_File , commitPrefixMap);
 
         // make first commit
         Commit commit = new Commit("initial commit");
@@ -96,26 +94,27 @@ public class Repository {
         //create a default master
         List<String> defaultList = new ArrayList<>();
         defaultList.add(commit.hashcode());
-        branch master = new branch("master", defaultList);
-        File newBranchFile = join(Branch_DIR, master.getBranchName());
-        writeObject(newBranchFile, master);
+        branch master = new branch("master" , defaultList);
+        File newBranchFile = join(Branch_DIR , master.getBranchName());
+        writeObject(newBranchFile , master);
 
         commitTree.setCurrentBranch("master");
 
-        writeObject(Staging_Area_File, stagingArea);
-        writeObject(CommitTree_DIR_File, commitTree);
-        writeObject(Removed_Staging_Area_File, removedStagingArea);
-        writeObject(Addition_File, additionArea);
-        writeObject(Commit_Prefix_Map_File, commitPrefixMap);
-        writeObject(Modified_Staging_Area_File, new HashSet<>());
+        writeObject(Staging_Area_File , stagingArea);
+        writeObject(CommitTree_DIR_File , commitTree);
+        writeObject(Removed_Staging_Area_File , removedStagingArea);
+        writeObject(Addition_File , additionArea);
+        writeObject(Commit_Prefix_Map_File , commitPrefixMap);
+        writeObject(Modified_Staging_Area_File , new HashSet<>());
 
     }
 
-    /** Adds a copy of the file as it currently exists to the staging area.<p>
-     *  If the file already exists,overwrite it.
-     * */
-    public static void add(File file) {
-        if(!file.isFile()) {
+    /**
+     * Adds a copy of the file as it currently exists to the staging area.<p>
+     * If the file already exists,overwrite it.
+     */
+    public static void add (File file) {
+        if (!file.isFile()) {
             System.out.println("File does not exist.");
             exit(0);
         }
@@ -123,26 +122,27 @@ public class Repository {
         Blob blob = new Blob(file);
         add(blob);
     }
+
     /**
      * add blob to staging area and check if any change occured
-     * @param blob a blob
      *
-     * */
-    private static void add(Blob blob) {
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+     * @param blob a blob
+     */
+    private static void add (Blob blob) {
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File , HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
+        HashSet<Blob> additionArea = readObject(Addition_File , HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
         HashSet<String> filesCodehashSet = commitTree.getHeadCommit().filesCode;
 
         if (removedStagingArea.contains(blob)) {
             removedStagingArea.remove(blob);
-            writeObject(Removed_Staging_Area_File, removedStagingArea);
+            writeObject(Removed_Staging_Area_File , removedStagingArea);
             return;
         }
         // if a file in stagingArea and name is same as blob's,change it to blob
-        for(Blob blob2 : stagingArea) {
-            if(blob2.getFile().equals(blob.getFile())) {
+        for (Blob blob2 : stagingArea) {
+            if (blob2.getFile().equals(blob.getFile())) {
                 stagingArea.remove(blob2);
                 break;
             }
@@ -151,26 +151,26 @@ public class Repository {
         stagingArea.add(blob);
         boolean flag = true;
         for (Blob b : commitTree.getHeadCommit().files) {
-            if(b.getFile().equals(blob.getFile())) {
+            if (b.getFile().equals(blob.getFile())) {
                 flag = false;
             }
         }
-        if(flag) {
+        if (flag) {
             additionArea.add(blob);
         }
-        writeObject(Staging_Area_File, stagingArea);
-        writeObject(Addition_File, additionArea);
-        writeObject(Removed_Staging_Area_File, removedStagingArea);
+        writeObject(Staging_Area_File , stagingArea);
+        writeObject(Addition_File , additionArea);
+        writeObject(Removed_Staging_Area_File , removedStagingArea);
     }
 
     /**
      * when program starts,add modified files into "modified area" and removed files into "removed area"
-     * */
-    public static void startCheck() {
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+     */
+    public static void startCheck () {
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         HashSet<Blob> blobs = commitTree.getHeadCommit().files;
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        HashSet<File> modifiedStagingArea = readObject(Modified_Staging_Area_File, HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
+        HashSet<File> modifiedStagingArea = readObject(Modified_Staging_Area_File , HashSet.class);
         List<String> fileList = Utils.plainFilenamesIn(CWD);
         Commit headCommit = commitTree.getHeadCommit();
         if (fileList != null) {
@@ -195,67 +195,68 @@ public class Repository {
 //            }
 //        }
 //        writeObject(Modified_Staging_Area_File, modifiedStagingArea);
-        writeObject(Removed_Staging_Area_File, removedStagingArea);
+        writeObject(Removed_Staging_Area_File , removedStagingArea);
     }
 
-    public static void commit(String message) {
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
+    public static void commit (String message) {
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File , HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
+        HashSet<Blob> additionArea = readObject(Addition_File , HashSet.class);
 
 
-        if(stagingArea.isEmpty() && removedStagingArea.isEmpty()) {
+        if (stagingArea.isEmpty() && removedStagingArea.isEmpty()) {
             // no file changed
             message("No changes added to the commit.");
             exit(0);
         }
         Commit latestCommit = commitTree.getHeadCommit();
-        Commit newCommit = new Commit(latestCommit, message);
+        Commit newCommit = new Commit(latestCommit , message);
 
         // update and save commit
         newCommit = updateFile(newCommit);
         newCommit.save();
 
         // delete file in CWD
-        for(Blob b : removedStagingArea) {
-            Utils.restrictedDelete(b.getFile(), false);
+        for (Blob b : removedStagingArea) {
+            Utils.restrictedDelete(b.getFile() , false);
         }
 
 
-
         commitTree.add_Commit(newCommit);
-        writeObject(CommitTree_DIR_File, commitTree);
+        writeObject(CommitTree_DIR_File , commitTree);
         stagingArea.clear();
-        writeObject(Staging_Area_File,stagingArea);
+        writeObject(Staging_Area_File , stagingArea);
         removedStagingArea.clear();
-        writeObject(Removed_Staging_Area_File, removedStagingArea);
+        writeObject(Removed_Staging_Area_File , removedStagingArea);
         additionArea.clear();
-        writeObject(Addition_File,additionArea);
+        writeObject(Addition_File , additionArea);
     }
+
     /**
      * update files in stagingArea and remove from removeStagingArea
+     *
      * @return a HashSet contains files. if file differ from one in stagingArea,use it.Or use the old
-     * */
-    private static Commit updateFile(Commit commit) {
+     */
+    private static Commit updateFile (Commit commit) {
         // update commit in stagingArea
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File , HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
 
         Commit updatedCommit = new Commit(commit);
         HashSet<Blob> updatedFiles;
-        if(updatedCommit.files == null) {
+        if (updatedCommit.files == null) {
             updatedFiles = new HashSet<>();
         } else {
             updatedFiles = new HashSet<>(updatedCommit.files);
         }
         // add files in stagingArea to updated file list
-        for(Blob b : stagingArea) {
+        for (Blob b : stagingArea) {
             boolean found = false;
             Iterator<Blob> iterator = updatedFiles.iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 Blob b2 = iterator.next();
-                if(b.getPath().equals(b2.getPath())) {
+                if (b.getPath().equals(b2.getPath())) {
                     iterator.remove();
                     found = true;
                 }
@@ -265,7 +266,7 @@ public class Repository {
 
         }
         // delete all files in removedStagingArea from commit
-        for(Blob b : removedStagingArea) {
+        for (Blob b : removedStagingArea) {
             updatedFiles.removeIf(b2 -> b.getPath().equals(b2.getPath()));
         }
         // update file list and its SHA-1 code
@@ -278,18 +279,17 @@ public class Repository {
     }
 
 
-
     /**
      * command 'rm'
      * remove files in staging area and delete files if in current commit<p>
      * In short, untrack a file
-     * */
-    public static void remove(File file) {
-        //TODO: a bit ugly :(
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
+     */
+    public static void remove (File file) {
+
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File , HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
+        HashSet<Blob> additionArea = readObject(Addition_File , HashSet.class);
         Commit headCommit = commitTree.getHeadCommit();
         List<String> fileList = Utils.plainFilenamesIn(CWD);
 
@@ -303,7 +303,7 @@ public class Repository {
                         break;
                     }
                 }
-                writeObject(Removed_Staging_Area_File, removedStagingArea);
+                writeObject(Removed_Staging_Area_File , removedStagingArea);
             } else {
                 System.out.println("No reason to remove the file.");
             }
@@ -323,30 +323,30 @@ public class Repository {
         }
         if (isTracked) {
             removedStagingArea.add(blob);
-            restrictedDelete(file, false);
+            restrictedDelete(file , false);
         }
         if (additionArea.contains(blob)) {
             additionArea.remove(blob);
         }
 
-        writeObject(Staging_Area_File, stagingArea);
-        writeObject(Removed_Staging_Area_File, removedStagingArea);
-        writeObject(Addition_File, additionArea);
+        writeObject(Staging_Area_File , stagingArea);
+        writeObject(Removed_Staging_Area_File , removedStagingArea);
+        writeObject(Addition_File , additionArea);
     }
 
 
     /**
      * command log
      * print current branch's commit history
-     * */
-    public static void log() {
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+     */
+    public static void log () {
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         branch currentBranch = commitTree.getCurrentBranch();
         List<String> commitList = new ArrayList<>(currentBranch.commitList);
         Collections.reverse(commitList);
-        for(String commitID : commitList) {
-            Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
-            if(commit != null) {
+        for (String commitID : commitList) {
+            Commit commit = readObject(join(Commit_DIR , commitID) , Commit.class);
+            if (commit != null) {
                 printCommit(commit);
             }
         }
@@ -355,30 +355,30 @@ public class Repository {
     /**
      * command global_log
      * use method: Utils.plainFilenamesIn(),traverse all commit in folder commit
-     * */
-    public static void global_log() {
+     */
+    public static void global_log () {
         List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
-        for(String commitID : commitList) {
-            Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
+        for (String commitID : commitList) {
+            Commit commit = readObject(join(Commit_DIR , commitID) , Commit.class);
             printCommit(commit);
         }
     }
 
     /**
      * command find [message]
-     *  traverse commit DIR ,find and print appropriate commit's ID
-     * */
-    public static void find(String message) {
+     * traverse commit DIR ,find and print appropriate commit's ID
+     */
+    public static void find (String message) {
         List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
         boolean founded = false;
-        for(String commitID : commitList) {
-            Commit currentCommit = readObject(join(Commit_DIR, commitID), Commit.class);
-            if(currentCommit.getMessage().equals(message)) {
-                message(currentCommit.getHashCode());
+        for (String commitID : commitList) {
+            Commit currentCommit = readObject(join(Commit_DIR , commitID) , Commit.class);
+            if (currentCommit.getMessage().equals(message)) {
+                message(currentCommit.hashcode());
                 founded = true;
             }
         }
-        if(!founded) {
+        if (!founded) {
             message("Found no commit with that message.");
         }
     }
@@ -389,22 +389,20 @@ public class Repository {
      * 1. branch list and current branch
      * 2. tracked files
      * 3. files in removedStagingArea
-     * 4. TODO:changed but not commit files
-     * 5. TODO:untracked files
-     * */
-    public static void status() {
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
-        HashSet<File> modified = readObject(Modified_Staging_Area_File, HashSet.class);
+     */
+    public static void status () {
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File , HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
+        HashSet<Blob> additionArea = readObject(Addition_File , HashSet.class);
+        HashSet<File> modified = readObject(Modified_Staging_Area_File , HashSet.class);
 
         Commit headCommit = commitTree.getHeadCommit();
         //branch
         System.out.println("=== Branches ===");
-        List<String> branchList= plainFilenamesIn(Branch_DIR);
+        List<String> branchList = plainFilenamesIn(Branch_DIR);
         branch currentBranch = commitTree.getCurrentBranch();
-        for(String branch : Objects.requireNonNull(branchList)) {
+        for (String branch : Objects.requireNonNull(branchList)) {
             if (branch.equals(currentBranch.getBranchName())) {
                 System.out.println("*" + branch);
             } else {
@@ -417,13 +415,13 @@ public class Repository {
         HashSet<Blob> staged = new HashSet<>();
         staged.addAll(additionArea);
         System.out.println("=== Staged Files ===");
-        for(Blob b : staged) {
+        for (Blob b : staged) {
             System.out.println(b.getFile().getName());
         }
         System.out.println("");
 
         System.out.println("=== Removed Files ===");
-        for(Blob b : removedStagingArea) {
+        for (Blob b : removedStagingArea) {
             System.out.println(b.getFile().getName());
         }
         System.out.println("");
@@ -468,27 +466,27 @@ public class Repository {
 
     }
 
-    public static boolean checkout(String[] args) {
+    public static boolean checkout (String[] args) {
         if (args == null || args.length < 2) {
             message("Incorrect operands.");
             return false;
         }
 
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
-        HashSet<Blob> additionArea = readObject(Addition_File, HashSet.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File , HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
+        HashSet<Blob> additionArea = readObject(Addition_File , HashSet.class);
 
         // case 1: checkout -- [file name]
         if (args.length == 3 && args[1].equals("--")) {
             String filename = args[2];
             Commit headCommit = commitTree.getHeadCommit();
 
-            if(!randw(filename, headCommit)) {
+            if (!randw(filename , headCommit)) {
                 message("File does not exist in that commit.");
                 return false;
             } else {
-                randw(filename, headCommit);
+                randw(filename , headCommit);
             }
             return true;
         }
@@ -497,7 +495,7 @@ public class Repository {
         if (args.length == 4 && args[2].equals("--")) {
             List<String> commitIDList = plainFilenamesIn(Commit_DIR);
             String commitID = args[1];
-            if(commitID.length() != 40) {
+            if (commitID.length() != 40) {
                 for (String id : commitIDList) {
                     if (id.startsWith(commitID)) {
                         commitID = id;
@@ -522,23 +520,23 @@ public class Repository {
             // case1 untracked
             List<String> fileList = Utils.plainFilenamesIn(CWD);
 
-            for(String file : fileList) {
+            for (String file : fileList) {
                 File f = new File(file);
-                if(!tracked.contains(f)) {
+                if (!tracked.contains(f)) {
                     message("There is an untracked file in the way; delete it, or add and commit it first.");
                     return false;
                 }
             }
             if (commitIDList != null && commitIDList.contains(commitID)) {
-                Commit forwardCommit = readObject(join(Commit_DIR, commitID), Commit.class);
-                if(!randw(filename, forwardCommit)) {
+                Commit forwardCommit = readObject(join(Commit_DIR , commitID) , Commit.class);
+                if (!randw(filename , forwardCommit)) {
                     message("File does not exist in that commit.");
                     return false;
                 } else {
                     add(new File(filename));
                 }
 //                writeObject(Staging_Area_File, new HashSet<>());
-                writeObject(Addition_File, new HashSet<>());
+                writeObject(Addition_File , new HashSet<>());
             } else {
                 message("No commit with that id exists.");
                 return false;
@@ -555,7 +553,7 @@ public class Repository {
             } else {
                 List<String> branchList = plainFilenamesIn(Branch_DIR);
                 if (branchList != null && branchList.contains(branchName)) {
-                    branch forwardBranch = readObject(join(Branch_DIR, branchName), branch.class);
+                    branch forwardBranch = readObject(join(Branch_DIR , branchName) , branch.class);
                     Commit headCommit = commitTree.getHeadCommit();
 
                     HashSet<Blob> staged = new HashSet<>(headCommit.files);
@@ -569,9 +567,9 @@ public class Repository {
                     // case1 untracked
                     List<String> fileList = Utils.plainFilenamesIn(CWD);
 
-                    for(String file : fileList) {
+                    for (String file : fileList) {
                         File f = new File(file);
-                        if(!tracked.contains(f)) {
+                        if (!tracked.contains(f)) {
                             message("There is an untracked file in the way; delete it, or add and commit it first.");
                             return false;
                         }
@@ -590,17 +588,17 @@ public class Repository {
                     headCommit = commitTree.getHeadCommit();
                     // clear CWD
                     List<String> filenames = plainFilenamesIn(CWD);
-                    for(String filename : filenames) {
-                        restrictedDelete(new File(filename), false);
+                    for (String filename : filenames) {
+                        restrictedDelete(new File(filename) , false);
                     }
-                    for(String fileCode : headCommit.filesCode) {
-                        Blob newBlob = readObject(join(Files_DIR, fileCode), Blob.class);
-                        writeContents(join(CWD, newBlob.getFile().getName()), newBlob.getContent());
+                    for (String fileCode : headCommit.filesCode) {
+                        Blob newBlob = readObject(join(Files_DIR , fileCode) , Blob.class);
+                        writeContents(join(CWD , newBlob.getFile().getName()) , newBlob.getContent());
                     }
                     stagingArea.clear();
 
-                    writeObject(Staging_Area_File, stagingArea);
-                    writeObject(CommitTree_DIR_File, commitTree);
+                    writeObject(Staging_Area_File , stagingArea);
+                    writeObject(CommitTree_DIR_File , commitTree);
                     return true;
                 } else {
                     message("No such branch exists.");
@@ -617,13 +615,14 @@ public class Repository {
 
     /**
      * get a file named filename in commit c from blobs and write to CWD
+     *
      * @return true if and only if file is found and write successfully,otherwise false
-     * */
-    public static boolean randw(String filename, Commit c) {
-        for(Blob b : c.files) {
-            if(b.getFile().getName().equals(filename)) {
-                Blob newBlob = readObject(join(Files_DIR, b.getShaCode()), Blob.class);
-                writeContents(join(CWD, newBlob.getFile().getName()), newBlob.getContent());
+     */
+    public static boolean randw (String filename , Commit c) {
+        for (Blob b : c.files) {
+            if (b.getFile().getName().equals(filename)) {
+                Blob newBlob = readObject(join(Files_DIR , b.getShaCode()) , Blob.class);
+                writeContents(join(CWD , newBlob.getFile().getName()) , newBlob.getContent());
                 return true;
             }
         }
@@ -633,27 +632,28 @@ public class Repository {
     /*
      * create a branch which begin at current headCommit
      * */
-    public static void branch(String branchName) {
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+    public static void branch (String branchName) {
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         List<String> fileList = plainFilenamesIn(Branch_DIR);
         if (fileList != null && fileList.contains(branchName)) {
             message("A branch with that name already exists.");
         } else {
-            branch newBranch = new branch(branchName, commitTree.getCurrentBranch().getBranchName());
-            writeObject(join(Branch_DIR, branchName), newBranch);
+            branch newBranch = new branch(branchName , commitTree.getCurrentBranch().getBranchName());
+            writeObject(join(Branch_DIR , branchName) , newBranch);
         }
     }
 
     /**
-    */
-    public static void removeBranch(String branchName) {
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+     *
+     */
+    public static void removeBranch (String branchName) {
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         List<String> fileList = plainFilenamesIn(Branch_DIR);
         if (fileList != null && fileList.contains(branchName)) {
             if (commitTree.getCurrentBranch().getBranchName().equals(branchName)) {
                 message("Cannot remove the current branch.");
             } else {
-                restrictedDelete(join(Branch_DIR, branchName), true);
+                restrictedDelete(join(Branch_DIR , branchName) , true);
             }
         } else {
             message("A branch with that name does not exist.");
@@ -666,15 +666,15 @@ public class Repository {
      * Checks out all the files tracked by the given commit.
      * Removes tracked files that are not present in that commit.
      * Also moves the current branch’s head to that commit node
-     * */
-    public static void reset(String commitID) {
+     */
+    public static void reset (String commitID) {
         List<String> fileList = plainFilenamesIn(Commit_DIR);
         if (!fileList.contains(commitID)) {
             message("No commit with that id exists.");
             return;
         }
-        Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        Commit commit = readObject(join(Commit_DIR , commitID) , Commit.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
 
         // clear CWD
         List<String> filenames = plainFilenamesIn(CWD);
@@ -691,14 +691,14 @@ public class Repository {
         }
         for (String filename : filenames) {
             if (!commitFiles.contains(filename)) {
-                restrictedDelete(new File(filename), false);
+                restrictedDelete(new File(filename) , false);
             }
         }
 
 
-        if(commit.files != null) {
-            for(Blob b : commit.files) {
-                if (!checkout(new String[]{"", commitID, "--", b.getFile().getName()})) {
+        if (commit.files != null) {
+            for (Blob b : commit.files) {
+                if (!checkout(new String[]{"" , commitID , "--" , b.getFile().getName()})) {
                     return;
                 }
             }
@@ -707,20 +707,21 @@ public class Repository {
         branch currentBranch = commitTree.getCurrentBranch();
         currentBranch.setHeadCommit(commit);
         commitTree.setCurrentBranch(currentBranch.getBranchName());
-        writeObject(CommitTree_DIR_File, commitTree);
-        writeObject(join(Branch_DIR, currentBranch.getBranchName()), currentBranch);
+        writeObject(CommitTree_DIR_File , commitTree);
+        writeObject(join(Branch_DIR , currentBranch.getBranchName()) , currentBranch);
         // clear stagingArea
-        writeObject(Staging_Area_File, new HashSet<Blob>());
-        writeObject(Removed_Staging_Area_File, new HashSet<Blob>());
-        writeObject(Addition_File, new HashSet<Blob>());
+        writeObject(Staging_Area_File , new HashSet<Blob>());
+        writeObject(Removed_Staging_Area_File , new HashSet<Blob>());
+        writeObject(Addition_File , new HashSet<Blob>());
     }
 
     /**
      * Command Merge
      * details are shown in /gitlet-design.md
+     *
      * @param givenBranch branch to be merged to current branch
-     * */
-    public static void merge(branch givenBranch) throws Exception {
+     */
+    public static void merge (branch givenBranch) throws Exception {
         // failure case2: branch not exist
         List<String> branchList = plainFilenamesIn(Branch_DIR);
         if (!branchList.contains(givenBranch.getBranchName())) {
@@ -729,9 +730,9 @@ public class Repository {
         }
 
         // check before merge
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         branch currentBranch = commitTree.getCurrentBranch();
-        Commit splitPoint = getSplitPoint(currentBranch.getBranchName(), givenBranch.getBranchName());
+        Commit splitPoint = getSplitPoint(currentBranch.getBranchName() , givenBranch.getBranchName());
         if (currentBranch.getBranchName().equals(givenBranch.getBranchName())) {
             message("Cannot merge a branch with itself.");
             return;
@@ -747,14 +748,14 @@ public class Repository {
         }
         if (splitPoint.equals(currentBranch.getHeadCommit())) {
             // given branch fast-forward
-            checkout(new String[]{"", givenBranch.getBranchName()});
+            checkout(new String[]{"" , givenBranch.getBranchName()});
             message("Current branch fast-forwarded.");
             return;
         }
 
         // failure case1: uncommited change
-        HashSet<Blob> staging_Area = readObject(Staging_Area_File, HashSet.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        HashSet<Blob> staging_Area = readObject(Staging_Area_File , HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
         if (!staging_Area.isEmpty() || !removedStagingArea.isEmpty()) {
             message("You have uncommitted changes");
             return;
@@ -792,7 +793,7 @@ public class Repository {
 
         boolean conflictExist = false;
 
-        for(File item : uniteMap.keySet()) {
+        for (File item : uniteMap.keySet()) {
             Blob a = curnt_map.get(item);
             Blob b = given_map.get(item);
             Blob s = split_map.get(item);
@@ -808,7 +809,7 @@ public class Repository {
                     }
                 } else if (!a.equals(s) && !b.equals(s) && !a.equals(b)) {
                     // case 8.1 : file changed by different ways:
-                    result_Conflict.add(mergeConflict(a, b));
+                    result_Conflict.add(mergeConflict(a , b));
                     conflictExist = true;
                 }
             } else if (!split_map.containsKey(item)) {
@@ -821,7 +822,7 @@ public class Repository {
                     result.add(b);
                 } else if (a != null && b != null && !a.equals(b)) {
                     // case 8.3 : not in split point but have different content
-                    result_Conflict.add(mergeConflict(a, b));
+                    result_Conflict.add(mergeConflict(a , b));
                     conflictExist = true;
                 } else {
                     // case 3
@@ -835,7 +836,7 @@ public class Repository {
                 } else if ((a != null && !a.equals(s)) || (b != null && !b.equals(s))) {
                     // changed in one and deleted in the other
                     // a or b != null and != s
-                    result_Conflict.add(mergeConflict(a, b));
+                    result_Conflict.add(mergeConflict(a , b));
                     conflictExist = true;
                 } else {
                     // both deleted in two branches
@@ -852,12 +853,12 @@ public class Repository {
          *     delete file from workspace
          *
          * */
-        for (Blob blob: result) {
-            writeContents(blob.getFile(), blob.getContent());
+        for (Blob blob : result) {
+            writeContents(blob.getFile() , blob.getContent());
         }
         for (File delete : deleted) {
             if (fileList.contains(delete.getName())) {
-                restrictedDelete(delete, false);
+                restrictedDelete(delete , false);
             }
         }
         /**
@@ -868,7 +869,7 @@ public class Repository {
         if (conflictExist) {
             message("Encountered a merge conflict");
             for (Blob blob : result_Conflict) {
-                writeContents(blob.getFile(), blob.getContent());
+                writeContents(blob.getFile() , blob.getContent());
             }
         }
         // if there's no conflict: commit changes
@@ -889,18 +890,15 @@ public class Repository {
 
         // update commitTree
         commitTree.add_Commit(commit);
-        commitTree.addParent(commit, givenHead);
-        writeObject(CommitTree_DIR_File, commitTree);
+        commitTree.addParent(commit , givenHead);
+        writeObject(CommitTree_DIR_File , commitTree);
         // clear all stagingAreas
-        writeObject(Staging_Area_File,new HashSet<>());
-        writeObject(Removed_Staging_Area_File, new HashSet<>());
-        writeObject(Addition_File,new HashSet<>());
-
-
+        writeObject(Staging_Area_File , new HashSet<>());
+        writeObject(Removed_Staging_Area_File , new HashSet<>());
+        writeObject(Addition_File , new HashSet<>());
 
 
     }
-
 
 
 }

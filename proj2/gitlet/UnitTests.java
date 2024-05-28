@@ -1,8 +1,6 @@
 package gitlet;
 
 
-import net.sf.saxon.trans.SymbolicName;
-import org.checkerframework.checker.units.qual.C;
 import org.junit.Test;
 
 import java.io.BufferedWriter;
@@ -13,11 +11,12 @@ import java.util.*;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class UnitTests {
     @org.junit.Test
-    public void testAddCommit() {
+    public void testAddCommit () {
         CommitTree CT = new CommitTree();
         CT.add_Commit(new Commit("0   commit"));
         CT.add_Commit(new Commit("1st commit"));
@@ -25,85 +24,90 @@ public class UnitTests {
         CT.add_Commit(new Commit("3rd commit"));
         CT.printTree();
     }
+
     @org.junit.Test
-    public void testFileGet() {
+    public void testFileGet () {
         File CWD = new File(System.getProperty("user.dir"));
-        File f = join(CWD, "gitlet-design.md");
+        File f = join(CWD , "gitlet-design.md");
 
     }
 
     @Test
-    public void testInitialize() {
+    public void testInitialize () {
         Repository.initialize();
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         commitTree.printTree();
         Repository.startCheck();
     }
 
     @org.junit.Test
-    public void testCommit() {
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+    public void testCommit () {
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File , HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
 
         Blob b = new Blob(new File("gitlet/test.md"));
         stagingArea.add(b);
 
-        writeObject(CommitTree_DIR_File, commitTree);
-        writeObject(Removed_Staging_Area_File, removedStagingArea);
-        writeObject(Staging_Area_File, stagingArea);
+        writeObject(CommitTree_DIR_File , commitTree);
+        writeObject(Removed_Staging_Area_File , removedStagingArea);
+        writeObject(Staging_Area_File , stagingArea);
         commit("add blob b");
     }
+
     @Test
-    public void testCommit_withCh4nge() {
+    public void testCommit_withCh4nge () {
 
         startCheck();
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
-        HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
-        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
+        HashSet<Blob> stagingArea = readObject(Staging_Area_File , HashSet.class);
+        HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File , HashSet.class);
 
         Repository.commit("change file");
     }
 
     @Test
-    public void testLog() {
+    public void testLog () {
 //        Repository.log();
         Repository.add(new File("README.md"));
         status();
     }
 
     @Test
-    public void testReadFile() {
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+    public void testReadFile () {
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         Commit head = commitTree.getHeadCommit();
         HashSet<String> code = head.filesCode;
 
         System.out.println(head.filesCode);
-        for(String s : code) {
-            Blob b = readObject(join(Files_DIR, s), Blob.class);
-            writeContents(join(CWD, "testReadFile.md"), b.getContent());
+        for (String s : code) {
+            Blob b = readObject(join(Files_DIR , s) , Blob.class);
+            writeContents(join(CWD , "testReadFile.md") , b.getContent());
         }
     }
+
     @Test
-    public void testRM() {
+    public void testRM () {
         // TODO:测试搁置 父目录包含gitlet
         Repository.remove(new File("gitlet/test.md"));
         Repository.commit("delete file");
         Repository.log();
     }
+
     @Test
-    public void testFind() {
+    public void testFind () {
         Repository.find("change file");
     }
+
     @Test
-    public void testStatus() {
+    public void testStatus () {
         Repository.startCheck();
         Repository.status();
 
     }
 
     @Test
-    public void testIteminHashSet() {
+    public void testIteminHashSet () {
         HashSet<Blob> newHashset = new HashSet<>();
         Blob b1 = new Blob(new File("gitlet/test.md"));
         Blob b2 = new Blob(new File("gitlet/test.md"));
@@ -112,15 +116,16 @@ public class UnitTests {
         System.out.println(b1.getFile().getName());
 //        System.out.println(b2.getShaCode());
     }
+
     @Test
-    public void testBranch() {
+    public void testBranch () {
         startCheck();
 //        add(new File("gitlet/testmore"));
 //        commit("new file testmore");
-        branch currentBranch = readObject(join(Branch_DIR, "master"), branch.class);
+        branch currentBranch = readObject(join(Branch_DIR , "master") , branch.class);
         List<String> commitList = currentBranch.commitList;
-        for(String commitID : commitList) {
-            Commit commit1 = readObject(join(Commit_DIR, commitID), Commit.class);
+        for (String commitID : commitList) {
+            Commit commit1 = readObject(join(Commit_DIR , commitID) , Commit.class);
             System.out.printf(commit1.getHashCode() + ' ');
             System.out.println(commit1.getMessage());
         }
@@ -130,9 +135,9 @@ public class UnitTests {
 
     /**
      * algorithm is ok
-     * */
+     */
     @Test
-    public void testLCA() {
+    public void testLCA () {
         List<String> a = new ArrayList<>();
         List<String> b = new ArrayList<>();
 
@@ -147,13 +152,13 @@ public class UnitTests {
         Collections.reverse(a);
         Collections.reverse(b);
         Map<String, Integer> ba_Map = new HashMap<>();
-        for(int i = 0;i < a.size();i++) {
-            ba_Map.put(a.get(i), i);
+        for (int i = 0; i < a.size(); i++) {
+            ba_Map.put(a.get(i) , i);
         }
         System.out.println(ba_Map);
-        for(String itemB : b) {
+        for (String itemB : b) {
             System.out.println(itemB);
-            if(ba_Map.containsKey(itemB)) {
+            if (ba_Map.containsKey(itemB)) {
                 System.out.println(itemB);
                 break;
             }
@@ -164,34 +169,37 @@ public class UnitTests {
          *              6 -> 7      b2
          * */
     }
+
     @Test
-    public void testMergeFile() {
-        Blob blob1 = new Blob(join(CWD, "testFile1.md"));
-        Blob blob2 = new Blob(join(CWD, "testFile2.md"));
-        byte[] content = mergeFilewithConflict(blob1.getContent(), blob2.getContent());
-        writeContents(join(CWD, "testFile1.md"),content);
-    }
-    @Test
-    public void testWriteFiletoBottom() {
-        Blob blob1 = new Blob(join(CWD, "testFile1.md"));
-        writeContents(join(CWD, "testFile1.md"),writeLinetoBottom(blob1.getContent(), "edit!"));
+    public void testMergeFile () {
+        Blob blob1 = new Blob(join(CWD , "testFile1.md"));
+        Blob blob2 = new Blob(join(CWD , "testFile2.md"));
+        byte[] content = mergeFilewithConflict(blob1.getContent() , blob2.getContent());
+        writeContents(join(CWD , "testFile1.md") , content);
     }
 
     @Test
-    public void testMerge_commonCase() {
+    public void testWriteFiletoBottom () {
+        Blob blob1 = new Blob(join(CWD , "testFile1.md"));
+        writeContents(join(CWD , "testFile1.md") , writeLinetoBottom(blob1.getContent() , "edit!"));
+    }
+
+    @Test
+    public void testMerge_commonCase () {
         initialize();
 
     }
 
     @Test
-    public void testDumpobj(){
+    public void testDumpobj () {
         String fileName = ".gitlet/commits/3c9bfc102dc642d8c3213654202063a155d480b9";
-        Dumpable obj = Utils.readObject(new File(fileName),
+        Dumpable obj = Utils.readObject(new File(fileName) ,
                 Dumpable.class);
         obj.dump();
     }
+
     @Test
-    public void testStatus_test12() {
+    public void testStatus_test12 () {
         Repository.initialize();
         Repository.add(new File("f.txt"));
         Repository.add(new File("h.txt"));
@@ -200,14 +208,15 @@ public class UnitTests {
     }
 
     @Test
-    public void testRM_test15_p1() throws IOException {
+    public void testRM_test15_p1 () throws IOException {
         initialize();
         add(new File("f.txt"));
         add(new File("g.txt"));
         commit("two new files");
     }
+
     @Test
-    public void testRM_test15_p2() throws IOException {
+    public void testRM_test15_p2 () throws IOException {
         startCheck();
         remove(new File("f.txt"));
         File f = new File("f.txt");
@@ -217,8 +226,9 @@ public class UnitTests {
         startCheck();
         status();
     }
+
     @Test
-    public void testStatus_test18() {
+    public void testStatus_test18 () {
         initialize();
         add(new File("f.txt"));
         add(new File("g.txt"));
@@ -317,13 +327,14 @@ public class UnitTests {
          * OK
          * */
     }
+
     @Test
-    public void testRemove_test22() throws IOException {
+    public void testRemove_test22 () throws IOException {
         initialize();
         File file = new File("f.txt");
         add(file);
         commit("new file");
-        restrictedDelete(file, false);
+        restrictedDelete(file , false);
         startCheck();
         remove(file);
         status();
@@ -436,7 +447,7 @@ public class UnitTests {
     }
 
     @Test
-    public void testCommit_test23() {
+    public void testCommit_test23 () {
 //        initialize();
 //        add(new File("f.txt"));
 //        add(new File("g.txt"));
@@ -447,17 +458,17 @@ public class UnitTests {
     }
 
     @Test
-    public void testCheckout_case1_test28() {
+    public void testCheckout_case1_test28 () {
         initialize();
         File file = new File("f.txt");
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) { // false表示覆盖模式
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file , false))) { // false表示覆盖模式
             writer.write("version1");
         } catch (IOException e) {
             e.printStackTrace();
         }
         add(file);
         commit("version 1");
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) { // false表示覆盖模式
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file , false))) { // false表示覆盖模式
             writer.write("version2");
         } catch (IOException e) {
             e.printStackTrace();
@@ -468,7 +479,7 @@ public class UnitTests {
     }
 
     @Test
-    public void testCheckout_case1_test28_p2() {
+    public void testCheckout_case1_test28_p2 () {
         String[] args = new String[5];
         args[0] = "checkout";
         args[1] = "9531dc3342b5f795edeb0e0900a823231c8f1dfc";
@@ -480,30 +491,31 @@ public class UnitTests {
     }
 
     @Test
-    public void testNewStatus() {
+    public void testNewStatus () {
 //        log();
         startCheck();
         status();
     }
 
     @Test
-    public void test29_badCheckout() {
+    public void test29_badCheckout () {
 
     }
+
     @Test
-    public void test30_branch() {
+    public void test30_branch () {
         initialize();
         branch("other");
         File f = new File("f.txt");
         File g = new File("g.txt");
-        write(f.getName(), "wug.txt");
-        write(g.getName(), "notwug.txt");
+        write(f.getName() , "wug.txt");
+        write(g.getName() , "notwug.txt");
         add(f);
         add(g);
         commit("main two files");
 //        status();
-        checkout(new String[]{"checkout", "other"});
-        write(f.getName(), "notwug.txt");
+        checkout(new String[]{"checkout" , "other"});
+        write(f.getName() , "notwug.txt");
 //        write(g.getName(), "notwug2.txt");
         add(f);
         commit("Alternative file");
@@ -514,20 +526,21 @@ public class UnitTests {
         }
 //        status();
 
-        checkout(new String[]{"checkout", "master"});
+        checkout(new String[]{"checkout" , "master"});
         System.out.println("MASTER");
         System.out.println(readContentsAsString(f));
         System.out.println(readContentsAsString(g));
 
-        checkout(new String[]{"checkout", "other"});
+        checkout(new String[]{"checkout" , "other"});
         System.out.println("OTHER");
         System.out.println(readContentsAsString(f));
         if (g.exists()) {
             System.out.println(readContentsAsString(g));
         }
     }
-    public void write(String filename, String content) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, false))) { // true表示追加模式
+
+    public void write (String filename , String content) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename , false))) { // true表示追加模式
             writer.write(content);
 //            writer.newLine(); // 添加新行
         } catch (IOException e) {
@@ -536,70 +549,71 @@ public class UnitTests {
     }
 
     @Test
-    public void testP() {
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+    public void testP () {
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         commitTree.printTree();
 
     }
 
     @Test
-    public void test33_merge_no_conflict() {
+    public void test33_merge_no_conflict () {
         initialize();
         File f = new File("f.txt");
         File g = new File("g.txt");
-        write("f.txt", "wug.txt");
-        write("g.txt", "notwug.txt");
+        write("f.txt" , "wug.txt");
+        write("g.txt" , "notwug.txt");
         add(f);
         add(g);
         commit("Two files");
         branch("other");
         File h = new File("h.txt");
-        write("h.txt", "wug2.txt");
+        write("h.txt" , "wug2.txt");
         add(h);
         remove(g);
         commit("Add h.txt and remove g.txt");
-        checkout(new String[]{"checkout", "other"});
+        checkout(new String[]{"checkout" , "other"});
         remove(f);
         File k = new File("k.txt");
-        write("k.txt", "wug3.txt");
+        write("k.txt" , "wug3.txt");
         add(k);
         commit("Add k.txt and remove f.txt");
-        checkout(new String[]{"checkout", "master"});
+        checkout(new String[]{"checkout" , "master"});
         try {
-            merge(readObject(join(Branch_DIR, "other"), branch.class));
+            merge(readObject(join(Branch_DIR , "other") , branch.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         List<String> fileList = plainFilenamesIn(CWD);
         System.out.println(fileList);
-        System.out.println("f.txt exists: "+ f.exists());
+        System.out.println("f.txt exists: " + f.exists());
         if (f.exists()) {
-            System.out.println("k contents: "+ readContentsAsString(f));
+            System.out.println("k contents: " + readContentsAsString(f));
         }
-        System.out.println("g.txt exists: "+ g.exists());
+        System.out.println("g.txt exists: " + g.exists());
         if (g.exists()) {
-            System.out.println("k contents: "+ readContentsAsString(g));
+            System.out.println("k contents: " + readContentsAsString(g));
         }
-        System.out.println("h exists: "+ h.exists());
+        System.out.println("h exists: " + h.exists());
         if (h.exists()) {
-            System.out.println("h contents: "+ readContentsAsString(h));
+            System.out.println("h contents: " + readContentsAsString(h));
         }
-        System.out.println("k exists: "+ k.exists());
+        System.out.println("k exists: " + k.exists());
         if (k.exists()) {
-            System.out.println("k contents: "+ readContentsAsString(k));
+            System.out.println("k contents: " + readContentsAsString(k));
         }
         log();
 
 
     }
+
     @Test
-    public void test_part_status() {
+    public void test_part_status () {
         status();
         global_log();
     }
 
     @Test
-    public void test34_merge_with_conflict() {
+    public void test34_merge_with_conflict () {
         initialize();
         File f = new File("f.txt");
         File g = new File("g.txt");
@@ -611,33 +625,33 @@ public class UnitTests {
         restrictedDelete(h.getName());
         restrictedDelete(k.getName());
         /**/
-        write("f.txt", "wug.txt");
-        write("g.txt", "notwug.txt");
+        write("f.txt" , "wug.txt");
+        write("g.txt" , "notwug.txt");
         add(f);
         add(g);
         commit("Two files");
         branch("other");
 
-        write("h.txt", "wug2.txt");
+        write("h.txt" , "wug2.txt");
         add(h);
         remove(g);
-        write("f.txt", "wug2.txt");
+        write("f.txt" , "wug2.txt");
         add(f);
         commit("Add h.txt and remove g.txt, and change f.txt");
 
-        checkout(new String[]{"checkout", "other"});
-        write("f.txt", "notwug.txt");
+        checkout(new String[]{"checkout" , "other"});
+        write("f.txt" , "notwug.txt");
         add(f);
-        write("k.txt", "wug3.txt");
+        write("k.txt" , "wug3.txt");
         add(k);
         commit("Add k.txt and modify f.txt");
-        checkout(new String[]{"checkout", "master"});
+        checkout(new String[]{"checkout" , "master"});
 
         log();
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File , CommitTree.class);
         Commit master_head = commitTree.getHeadCommit();
         try {
-            merge(readObject(join(Branch_DIR, "other"), branch.class));
+            merge(readObject(join(Branch_DIR , "other") , branch.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -646,21 +660,21 @@ public class UnitTests {
         log();
         status();
         /*debug*/
-        System.out.println("f.txt exists: "+ f.exists());
+        System.out.println("f.txt exists: " + f.exists());
         if (f.exists()) {
-            System.out.println("f contents: \n"+ readContentsAsString(f));
+            System.out.println("f contents: \n" + readContentsAsString(f));
         }
-        System.out.println("g.txt exists: "+ g.exists());
+        System.out.println("g.txt exists: " + g.exists());
         if (g.exists()) {
-            System.out.println("g contents: \n"+ readContentsAsString(g));
+            System.out.println("g contents: \n" + readContentsAsString(g));
         }
-        System.out.println("h exists: "+ h.exists());
+        System.out.println("h exists: " + h.exists());
         if (h.exists()) {
-            System.out.println("h contents: \n"+ readContentsAsString(h));
+            System.out.println("h contents: \n" + readContentsAsString(h));
         }
-        System.out.println("k exists: "+ k.exists());
+        System.out.println("k exists: " + k.exists());
         if (k.exists()) {
-            System.out.println("k contents: \n"+ readContentsAsString(k));
+            System.out.println("k contents: \n" + readContentsAsString(k));
         }
 
         System.out.println("current head = master head:" + master_head.hashcode().equals(current_head.hashcode()));
@@ -680,8 +694,9 @@ public class UnitTests {
          *  wug3.txt
          * */
     }
+
     @Test
-    public void testGetSplitPoint() {
+    public void testGetSplitPoint () {
         initialize();
         File f = new File("f.txt");
         File g = new File("g.txt");
@@ -693,24 +708,24 @@ public class UnitTests {
         restrictedDelete(h.getName());
         restrictedDelete(k.getName());
         /**/
-        write("f.txt", "wug.txt");
-        write("g.txt", "notwug.txt");
+        write("f.txt" , "wug.txt");
+        write("g.txt" , "notwug.txt");
         add(f);
         add(g);
         commit("Two files");
         branch("other");
-        write("h.txt", "wug2.txt");
+        write("h.txt" , "wug2.txt");
         add(h);
         remove(g);
         commit("Add h.txt and remove g.txt");
-        checkout(new String[]{"checkout", "other"});
-        write("f.txt", "notwug.txt");
+        checkout(new String[]{"checkout" , "other"});
+        write("f.txt" , "notwug.txt");
         add(f);
-        write("k.txt", "wug3.txt");
+        write("k.txt" , "wug3.txt");
         add(k);
         commit("Add k.txt and modify f.txt");
-        checkout(new String[]{"checkout", "master"});
-        Commit splitPoint = getSplitPoint("master", "other");
+        checkout(new String[]{"checkout" , "master"});
+        Commit splitPoint = getSplitPoint("master" , "other");
         message(splitPoint.getHashCode());
         global_log();
         for (Blob blob : splitPoint.files) {
@@ -718,12 +733,14 @@ public class UnitTests {
             message(new String(blob.getContent()));
         }
     }
+
     @Test
-    public void test35_merge_with_rm_conflict() {
+    public void test35_merge_with_rm_conflict () {
 
     }
+
     @Test
-    public void test36_merge_parent2() {
+    public void test36_merge_parent2 () {
         initialize();
         branch("B1");
         branch("B2");
@@ -735,67 +752,68 @@ public class UnitTests {
         restrictedDelete(g.getName());
         restrictedDelete(h.getName());
 
-        checkout(new String[]{"checkout", "B1"});
-        write("h.txt", "This is a wug.\n");
+        checkout(new String[]{"checkout" , "B1"});
+        write("h.txt" , "This is a wug.\n");
         add(h);
         commit("Add h.txt");
 
-        checkout(new String[]{"checkout", "B2"});
-        write("f.txt", "This is a wug.\n");
+        checkout(new String[]{"checkout" , "B2"});
+        write("f.txt" , "This is a wug.\n");
         add(f);
         commit("f.txt added");
 
         branch("C1");
-        write("g.txt", "This is not a wug.\n");
+        write("g.txt" , "This is not a wug.\n");
         add(g);
         remove(f);
         commit("Add g.txt, remove f.txt");
-        assertEquals("This is not a wug.\n", readContentsAsString(g));
+        assertEquals("This is not a wug.\n" , readContentsAsString(g));
         assertFalse(f.exists());
         assertFalse(h.exists());
 
-        checkout(new String[]{"checkout", "B1"});
+        checkout(new String[]{"checkout" , "B1"});
         // B1: add h
-        assertEquals("This is a wug.\n", readContentsAsString(h));
+        assertEquals("This is a wug.\n" , readContentsAsString(h));
         assertFalse(f.exists());
         assertFalse(g.exists());
         try {
             // merge C1
-        // C1: add f
-        // B2: add f, add g, rm f
-            merge(readObject(join(Branch_DIR, "C1"), branch.class));
+            // C1: add f
+            // B2: add f, add g, rm f
+            merge(readObject(join(Branch_DIR , "C1") , branch.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        assertEquals("This is a wug.\n", readContentsAsString(h));
-        assertEquals("This is a wug.\n", readContentsAsString(f));
+        assertEquals("This is a wug.\n" , readContentsAsString(h));
+        assertEquals("This is a wug.\n" , readContentsAsString(f));
         assertFalse(g.exists());
 
         try {
             // merge B2
-        // B2(head): g, h, rm(f)
-        // B1(head): (no)g, h, f
-            merge(readObject(join(Branch_DIR, "B2"), branch.class));
+            // B2(head): g, h, rm(f)
+            // B1(head): (no)g, h, f
+            merge(readObject(join(Branch_DIR , "B2") , branch.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         assertFalse(f.exists());
-        assertEquals("This is not a wug.\n", readContentsAsString(g));
-        assertEquals("This is a wug.\n", readContentsAsString(h));
+        assertEquals("This is not a wug.\n" , readContentsAsString(g));
+        assertEquals("This is a wug.\n" , readContentsAsString(h));
         /*
-        *
-        *
-        * B2--B2-
-        *   \    \
-        *    C1   \
-        *      \   \
-        * B1---B1---B1
-        *
-        *
-        * */
+         *
+         *
+         * B2--B2-
+         *   \    \
+         *    C1   \
+         *      \   \
+         * B1---B1---B1
+         *
+         *
+         * */
     }
+
     @Test
-    public void test36_err_merge() {
+    public void test36_err_merge () {
         initialize();
         File f = new File("f.txt");
         File g = new File("g.txt");
@@ -807,40 +825,39 @@ public class UnitTests {
         restrictedDelete(h.getName());
         restrictedDelete(k.getName());
 
-        write("f.txt", "This is a wug.\n");
-        write("g.txt", "This is not a wug.\n");
+        write("f.txt" , "This is a wug.\n");
+        write("g.txt" , "This is not a wug.\n");
         add(f);
         add(g);
         commit("two new files");
         branch("other");
-        write("h.txt", "Another Wug\n");
+        write("h.txt" , "Another Wug\n");
         add(h);
         remove(g);
         commit("add h rm g");
-        checkout(new String[]{"checkout", "other"});
+        checkout(new String[]{"checkout" , "other"});
         try {
-            merge(readObject(join(Branch_DIR, "other"), branch.class));
+            merge(readObject(join(Branch_DIR , "other") , branch.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         remove(f);
-        write("k.txt", "wug3.\n");
+        write("k.txt" , "wug3.\n");
         add(k);
         commit("add k rm f");
-        checkout(new String[]{"checkout", "master"});
-        write("k.txt", "wug3.\n");
+        checkout(new String[]{"checkout" , "master"});
+        write("k.txt" , "wug3.\n");
         try {
-            merge(readObject(join(Branch_DIR, "other"), branch.class));
+            merge(readObject(join(Branch_DIR , "other") , branch.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
 
 
     }
 
     @Test
-    public void testResetCommand() {
+    public void testResetCommand () {
         initialize();
         File f = new File("f.txt");
         File g = new File("g.txt");
@@ -852,28 +869,30 @@ public class UnitTests {
         restrictedDelete(h.getName());
         restrictedDelete(k.getName());
         /**/
-        write("f.txt", "wug.txt");
-        write("g.txt", "notwug.txt");
+        write("f.txt" , "wug.txt");
+        write("g.txt" , "notwug.txt");
         add(f);
         add(g);
         commit("Two files");
         branch("other");
-        write("h.txt", "Another Wug\n");
+        write("h.txt" , "Another Wug\n");
         add(h);
         remove(g);
         commit("add h rm g");
         log();
-        checkout(new String[]{"checkout", "other"});
+        checkout(new String[]{"checkout" , "other"});
     }
+
     @Test
-    public void testtest() {
-        write("h.txt", "Another Wug\n");
+    public void testtest () {
+        write("h.txt" , "Another Wug\n");
         reset("1e29c40f08937b20e794ac9be088e28b655c20ee");
-        List<String> l= plainFilenamesIn(CWD);
+        List<String> l = plainFilenamesIn(CWD);
         System.out.println(l);
     }
+
     @Test
-    public void test43() {
+    public void test43 () {
         initialize();
         File f = new File("f.txt");
         File g = new File("g.txt");
@@ -886,41 +905,41 @@ public class UnitTests {
         restrictedDelete(k.getName());
 
         branch("given");
-        write("f.txt", "This is a wug.\n");
+        write("f.txt" , "This is a wug.\n");
         add(f);
         commit("Add f.txt containing wug.txt");
-        checkout(new String[]{"checkout", "given"});
-        write("f.txt", "This is not a wug.\n");
+        checkout(new String[]{"checkout" , "given"});
+        write("f.txt" , "This is not a wug.\n");
         add(f);
         commit("Add f.txt containing notwug.txt");
         branch("B");
         try {
-            merge(readObject(join(Branch_DIR, "master"), branch.class));
+            merge(readObject(join(Branch_DIR , "master") , branch.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
 
-        System.out.println("f.txt exists: "+ f.exists());
+        System.out.println("f.txt exists: " + f.exists());
         if (f.exists()) {
-            System.out.println("f contents: "+ readContentsAsString(f));
+            System.out.println("f contents: " + readContentsAsString(f));
         }
-        System.out.println("g.txt exists: "+ g.exists());
+        System.out.println("g.txt exists: " + g.exists());
         if (g.exists()) {
-            System.out.println("k contents: "+ readContentsAsString(g));
+            System.out.println("k contents: " + readContentsAsString(g));
         }
-        System.out.println("h exists: "+ h.exists());
+        System.out.println("h exists: " + h.exists());
         if (h.exists()) {
-            System.out.println("h contents: "+ readContentsAsString(h));
+            System.out.println("h contents: " + readContentsAsString(h));
         }
-        System.out.println("k exists: "+ k.exists());
+        System.out.println("k exists: " + k.exists());
         if (k.exists()) {
-            System.out.println("k contents: "+ readContentsAsString(k));
+            System.out.println("k contents: " + readContentsAsString(k));
         }
     }
 
     @Test
-    public void test25() throws InterruptedException {
+    public void test25 () throws InterruptedException {
         initialize();
         File f = new File("f.txt");
         File g = new File("g.txt");
@@ -931,14 +950,14 @@ public class UnitTests {
         restrictedDelete(g.getName());
         restrictedDelete(h.getName());
         restrictedDelete(k.getName());
-        write("f.txt", "This is a wug.\n");
-        write("g.txt", "This is not a wug.\n");
+        write("f.txt" , "This is a wug.\n");
+        write("g.txt" , "This is not a wug.\n");
         add(f);
         add(g);
         commit("Two files");
         remove(f);
         commit("rm f");
-        write("f.txt", "This is not a wug.\n");
+        write("f.txt" , "This is not a wug.\n");
         add(f);
 
         commit("Two files");
@@ -947,18 +966,15 @@ public class UnitTests {
     }
 
     @Test
-    public void test25_() {
+    public void test25_ () {
 //        find("Two files");
         List<String> commitList = Utils.plainFilenamesIn(Commit_DIR);
-        for(String commitID : commitList) {
-            Commit currentCommit = readObject(join(Commit_DIR, commitID), Commit.class);
+        for (String commitID : commitList) {
+            Commit currentCommit = readObject(join(Commit_DIR , commitID) , Commit.class);
             System.out.println(currentCommit.getMessage());
         }
     }
 }
-
-
-
 
 
 //
