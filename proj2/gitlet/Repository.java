@@ -468,10 +468,10 @@ public class Repository {
 
     }
 
-    public static void checkout(String[] args) {
+    public static boolean checkout(String[] args) {
         if (args == null || args.length < 2) {
             message("Incorrect operands.");
-            return;
+            return false;
         }
 
         HashSet<Blob> stagingArea = readObject(Staging_Area_File, HashSet.class);
@@ -486,10 +486,11 @@ public class Repository {
 
             if(!randw(filename, headCommit)) {
                 message("File does not exist in that commit.");
+                return false;
             } else {
                 randw(filename, headCommit);
             }
-            return;
+            return true;
         }
 
         // case 2: checkout [commit id] -- [file name]
@@ -510,33 +511,39 @@ public class Repository {
             Commit headCommit = commitTree.getHeadCommit();
 
             HashSet<Blob> staged = new HashSet<>(headCommit.files);
-//            staged.addAll(additionArea);
-            Map<File, Blob> tracked = staged.stream()
-                    .collect(Collectors.toMap(Blob::getFile, blob -> blob));
-
+            staged.addAll(additionArea);
+            staged.addAll(stagingArea);
+//            Map<File, Blob> tracked = staged.stream()
+//                    .collect(Collectors.toMap(Blob::getFile, blob -> blob));
+            List<File> tracked = new ArrayList<>();
+            for (Blob b : staged) {
+                tracked.add(b.getFile());
+            }
             // case1 untracked
             List<String> fileList = Utils.plainFilenamesIn(CWD);
 
             for(String file : fileList) {
                 File f = new File(file);
-                if(!tracked.containsKey(f)) {
+                if(!tracked.contains(f)) {
                     message("There is an untracked file in the way; delete it, or add and commit it first.");
-                    exit(0);
+                    return false;
                 }
             }
             if (commitIDList != null && commitIDList.contains(commitID)) {
                 Commit forwardCommit = readObject(join(Commit_DIR, commitID), Commit.class);
                 if(!randw(filename, forwardCommit)) {
                     message("File does not exist in that commit.");
-                    exit(0);
+                    return false;
                 } else {
                     add(new File(filename));
                 }
+//                writeObject(Staging_Area_File, new HashSet<>());
+                writeObject(Addition_File, new HashSet<>());
             } else {
                 message("No commit with that id exists.");
-                exit(0);
+                return false;
             }
-            exit(0);
+            return true;
         }
 
         // case 3: checkout [branch name]
@@ -544,7 +551,7 @@ public class Repository {
             String branchName = args[1];
             if (branchName.equals(commitTree.getCurrentBranch().getBranchName())) {
                 message("No need to checkout the current branch.");
-                return;
+                return false;
             } else {
                 List<String> branchList = plainFilenamesIn(Branch_DIR);
                 if (branchList != null && branchList.contains(branchName)) {
@@ -553,22 +560,30 @@ public class Repository {
 
                     HashSet<Blob> staged = new HashSet<>(headCommit.files);
                     staged.addAll(additionArea);
+                    staged.addAll(stagingArea);
+                    List<File> tracked = new ArrayList<>();
+                    for (Blob b : staged) {
+                        tracked.add(b.getFile());
+                    }
+
                     // case1 untracked
                     List<String> fileList = Utils.plainFilenamesIn(CWD);
+
                     for(String file : fileList) {
-                        Blob b = new Blob(new File(file));
-                        if(!staged.contains(b)) {
+                        File f = new File(file);
+                        if(!tracked.contains(f)) {
                             message("There is an untracked file in the way; delete it, or add and commit it first.");
-                            return;
+                            return false;
                         }
                     }
+
                     // case2 change hasn't been commited
-                    HashSet<Blob> modified = new HashSet<>(stagingArea);
-                    modified.removeAll(additionArea);
-                    for(Blob b : modified) {
-                        message("There is an untracked file in the way; delete it, or add and commit it first.");
-                        return;
-                    }
+//                    HashSet<Blob> modified = new HashSet<>(stagingArea);
+//                    modified.removeAll(additionArea);
+//                    for(Blob b : modified) {
+//                        message("There is an untracked file in the way; delete it, or add and commit it first.");
+//                        return false;
+//                    }
                     // case3 all file is tracked and no change to commit,start changing branch
 
                     commitTree.setCurrentBranch(branchName);
@@ -586,17 +601,17 @@ public class Repository {
 
                     writeObject(Staging_Area_File, stagingArea);
                     writeObject(CommitTree_DIR_File, commitTree);
-                    return;
+                    return true;
                 } else {
                     message("No such branch exists.");
-                    return;
+                    return false;
                 }
             }
         }
 
         // 如果参数格式不符合任何已知的 checkout 形式，则输出错误信息
         message("Incorrect operands.");
-        return;
+        return false;
     }
 
 
@@ -659,23 +674,36 @@ public class Repository {
             return;
         }
         Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
+        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+
         // clear CWD
         List<String> filenames = plainFilenamesIn(CWD);
+//        for (Blob blob : commit.files) {
+//            String filename = blob.getFile().getName();
+//            if (!filenames.contains(filename)) {
+//                restrictedDelete(new File(filename), false);
+//            }
+//        }
+
+        List<String> commitFiles = new ArrayList<>();
         for (Blob blob : commit.files) {
-            String filename = blob.getFile().getName();
-            if (!filenames.contains(filename)) {
+            commitFiles.add(blob.getFile().getName());
+        }
+        for (String filename : filenames) {
+            if (!commitFiles.contains(filename)) {
                 restrictedDelete(new File(filename), false);
             }
         }
 
 
-
         if(commit.files != null) {
             for(Blob b : commit.files) {
-                checkout(new String[]{"", commitID, "--", b.getFile().getName()});
+                if (!checkout(new String[]{"", commitID, "--", b.getFile().getName()})) {
+                    return;
+                }
             }
         }
-        CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
+
         branch currentBranch = commitTree.getCurrentBranch();
         currentBranch.setHeadCommit(commit);
         commitTree.setCurrentBranch(currentBranch.getBranchName());
