@@ -125,5 +125,14 @@ public class Commit implements Serializable , Dumpable{
             System.out.println(x);
         }
     }
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Commit) {
+            Commit c = (Commit) obj;
+            return this.getHashCode().equals(c.getHashCode());
+        } else {
+            return false;
+        }
+    }
 
 }

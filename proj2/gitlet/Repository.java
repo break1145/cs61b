@@ -671,10 +671,15 @@ public class Repository {
             message("A branch with that name does not exist.");
             return;
         }
+
         // check before merge
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         branch currentBranch = commitTree.getCurrentBranch();
         Commit splitPoint = getSplitPoint(currentBranch.getBranchName(), givenBranch.getBranchName());
+        if (currentBranch.getBranchName().equals(givenBranch.getBranchName())) {
+            message("Cannot merge a branch with itself.");
+            return;
+        }
         if (splitPoint.equals(currentBranch.getHeadCommit()) && splitPoint.equals(givenBranch.getHeadCommit())) {
             // two same branches
             message("Given branch is an ancestor of the current branch.");
@@ -686,10 +691,7 @@ public class Repository {
             message("Current branch fast-forwarded.");
             return;
         }
-        if (currentBranch.getBranchName().equals(givenBranch.getBranchName())) {
-            message("Cannot merge a branch with itself.");
-            return;
-        }
+
         // failure case1: uncommited change
         HashSet<Blob> staging_Area = readObject(Staging_Area_File, HashSet.class);
         HashSet<Blob> removedStagingArea = readObject(Removed_Staging_Area_File, HashSet.class);

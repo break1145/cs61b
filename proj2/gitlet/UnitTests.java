@@ -795,6 +795,50 @@ public class UnitTests {
         *
         * */
     }
+    @Test
+    public void test36_err_merge() {
+        initialize();
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        File h = new File("h.txt");
+        File k = new File("k.txt");
+        /**/
+        restrictedDelete(f.getName());
+        restrictedDelete(g.getName());
+        restrictedDelete(h.getName());
+        restrictedDelete(k.getName());
+
+        write("f.txt", "This is a wug.\n");
+        write("g.txt", "This is not a wug.\n");
+        add(f);
+        add(g);
+        commit("two new files");
+        branch("other");
+        write("h.txt", "Another Wug\n");
+        add(h);
+        remove(g);
+        commit("add h rm g");
+        checkout(new String[]{"checkout", "other"});
+        try {
+            merge(readObject(join(Branch_DIR, "other"), branch.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        remove(f);
+        write("k.txt", "wug3.\n");
+        add(k);
+        commit("add k rm f");
+        checkout(new String[]{"checkout", "master"});
+        write("k.txt", "wug3.\n");
+        try {
+            merge(readObject(join(Branch_DIR, "other"), branch.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+
+    }
 
 }
 
