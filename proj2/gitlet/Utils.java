@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static gitlet.Repository.*;
 
@@ -326,35 +327,69 @@ class Utils {
 //        // not found
 //        return null;
 //    }
+    /**
+     * Add a commit's all parents, and its parents' parents recursively.
+     * @param commit A commit, which may be a merged commit or not.
+     * @return A List containing all ancestors of the given commit.
+     * If the commit is not a merged commit, returns a List containing only itself.
+     */
+    public static List<Commit> addParentCommits(Commit commit) {
+        List<Commit> ancestors = new ArrayList<>();
+        addAncestorsRecursively(commit, ancestors);
+        return ancestors;
+    }
+
+    private static void addAncestorsRecursively(Commit commit, List<Commit> ancestors) {
+        if (commit == null || ancestors.contains(commit)) {
+            return; // Avoid null commits and prevent infinite loops in case of cycles
+        }
+
+        ancestors.add(commit);
+
+        if (commit.isMergedCommit) {
+            for (String parentID : commit.parentCodes) {
+                Commit parentCommit = readObject(join(Commit_DIR, parentID), Commit.class);
+                addAncestorsRecursively(parentCommit, ancestors); // Recursive call
+            }
+        }
+    }
+
+
     public static Commit getSplitPoint(String branchA, String branchB) {
         branch bA = readObject(join(Branch_DIR, branchA), branch.class);
         branch bB = readObject(join(Branch_DIR, branchB), branch.class);
         List<Commit> aOrb = new ArrayList<>();
         List<Commit> aAndb = new ArrayList<>();
-        for (String commitID : bA.commitList) {
-            Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
-            aOrb.add(commit);
-            //TODO: if commit is merged commit: add the commit's all parents
-            //add attribute IsMergedCommit to Class Commit
-            //TODO
-        }
-        for (String commitID : bB.commitList) {
-            Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
-            aOrb.add(commit);
-        }
+
+        List<Commit> aCommits = bA.commitList.stream()
+                .map(commitID -> readObject(join(Commit_DIR, commitID), Commit.class))
+                .collect(Collectors.toList());
+        List<Commit> bCommits = bB.commitList.stream()
+                .map(commitID -> readObject(join(Commit_DIR, commitID), Commit.class))
+                .collect(Collectors.toList());
+
+        aCommits.forEach(commit -> aOrb.addAll(addParentCommits(commit)));
+        bCommits.forEach(commit -> aOrb.addAll(addParentCommits(commit)));
+
+        aCommits = aCommits.stream()
+                .flatMap(commit -> addParentCommits(commit).stream())
+                .collect(Collectors.toList());
+        bCommits = bCommits.stream()
+                .flatMap(commit -> addParentCommits(commit).stream())
+                .collect(Collectors.toList());
+
+
+
+
         for (Commit commit : aOrb) {
-            if (bA.commitList.contains(commit.hashcode()) && bB.commitList.contains(commit.hashcode())) {
+            if (aCommits.contains(commit) && bCommits.contains(commit)) {
                 aAndb.add(commit);
             }
         }
-        Collections.sort(aAndb, new Comparator<Commit>() {
-            @Override
-            public int compare(Commit c1, Commit c2) {
-                return c1.getCurrentDate().compareTo(c2.getCurrentDate());
-            }
-        });
 
-        return aAndb.get(aAndb.size() - 1);
+        aAndb.sort(Comparator.comparing(Commit::getCurrentDate).reversed());
+
+        return aAndb.isEmpty() ? null : aAndb.get(0);
     }
 
 
