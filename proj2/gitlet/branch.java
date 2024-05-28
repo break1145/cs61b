@@ -41,4 +41,15 @@ public class branch implements Serializable {
     public Commit getHeadCommit() {
         return Utils.readObject(join(Repository.Commit_DIR, this.commitList.get(this.commitList.size() - 1)), Commit.class);
     }
+    /*
+    * only can be used in reset
+    * */
+    public void setHeadCommit(Commit commit) {
+        int index = this.commitList.indexOf(commit.hashcode());
+        if (index != -1) {
+            this.commitList = new ArrayList<>(this.commitList.subList(0, index + 1));
+        } else {
+            this.commitList.add(commit.hashcode());
+        }
+    }
 }

@@ -4,6 +4,7 @@ package gitlet;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static gitlet.Utils.*;
 import static java.lang.System.exit;
@@ -493,26 +494,49 @@ public class Repository {
 
         // case 2: checkout [commit id] -- [file name]
         if (args.length == 4 && args[2].equals("--")) {
+            List<String> commitIDList = plainFilenamesIn(Commit_DIR);
             String commitID = args[1];
-            if(commitID.length() == 6) {
-                HashMap<String, String> commitPrefixMap = readObject(Commit_Prefix_Map_File, HashMap.class);
-                commitID = commitPrefixMap.get(commitID);
+            if(commitID.length() != 40) {
+                for (String id : commitIDList) {
+                    if (id.startsWith(commitID)) {
+                        commitID = id;
+                        break;
+                    }
+                }
             }
             String filename = args[3];
-            List<String> commitIDList = plainFilenamesIn(Commit_DIR);
+            /*check untracked*/
+
+            Commit headCommit = commitTree.getHeadCommit();
+
+            HashSet<Blob> staged = new HashSet<>(headCommit.files);
+//            staged.addAll(additionArea);
+            Map<File, Blob> tracked = staged.stream()
+                    .collect(Collectors.toMap(Blob::getFile, blob -> blob));
+
+            // case1 untracked
+            List<String> fileList = Utils.plainFilenamesIn(CWD);
+
+            for(String file : fileList) {
+                File f = new File(file);
+                if(!tracked.containsKey(f)) {
+                    message("There is an untracked file in the way; delete it, or add and commit it first.");
+                    exit(0);
+                }
+            }
             if (commitIDList != null && commitIDList.contains(commitID)) {
                 Commit forwardCommit = readObject(join(Commit_DIR, commitID), Commit.class);
                 if(!randw(filename, forwardCommit)) {
                     message("File does not exist in that commit.");
-                    return;
+                    exit(0);
                 } else {
                     add(new File(filename));
                 }
             } else {
                 message("No commit with that id exists.");
-                return;
+                exit(0);
             }
-            return;
+            exit(0);
         }
 
         // case 3: checkout [branch name]
@@ -629,16 +653,23 @@ public class Repository {
      * Also moves the current branch’s head to that commit node
      * */
     public static void reset(String commitID) {
+        List<String> fileList = plainFilenamesIn(Commit_DIR);
+        if (!fileList.contains(commitID)) {
+            message("No commit with that id exists.");
+            return;
+        }
+        Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
         // clear CWD
         List<String> filenames = plainFilenamesIn(CWD);
-        for(String filename : filenames) {
-            restrictedDelete(new File(filename), false);
+        for (Blob blob : commit.files) {
+            String filename = blob.getFile().getName();
+            if (!filenames.contains(filename)) {
+                restrictedDelete(new File(filename), false);
+            }
         }
-        // clear stagingArea
-        writeObject(Staging_Area_File, new HashSet<Blob>());
-        writeObject(Removed_Staging_Area_File, new HashSet<Blob>());
 
-        Commit commit = readObject(join(Commit_DIR, commitID), Commit.class);
+
+
         if(commit.files != null) {
             for(Blob b : commit.files) {
                 checkout(new String[]{"", commitID, "--", b.getFile().getName()});
@@ -646,17 +677,14 @@ public class Repository {
         }
         CommitTree commitTree = readObject(CommitTree_DIR_File, CommitTree.class);
         branch currentBranch = commitTree.getCurrentBranch();
-        // remove other commits
-        List<String> commitList = currentBranch.commitList;
-        for(int index = commitList.size() -1; index >=0; index--) {
-            if(commitList.get(index).equals(commitID)) {
-                break;
-            } else {
-                commitList.remove(index);
-            }
-        }
+        currentBranch.setHeadCommit(commit);
+        commitTree.setCurrentBranch(currentBranch.getBranchName());
+        writeObject(CommitTree_DIR_File, commitTree);
         writeObject(join(Branch_DIR, currentBranch.getBranchName()), currentBranch);
-
+        // clear stagingArea
+        writeObject(Staging_Area_File, new HashSet<Blob>());
+        writeObject(Removed_Staging_Area_File, new HashSet<Blob>());
+        writeObject(Addition_File, new HashSet<Blob>());
     }
 
     /**
@@ -680,8 +708,12 @@ public class Repository {
             message("Cannot merge a branch with itself.");
             return;
         }
-        if (splitPoint.equals(currentBranch.getHeadCommit()) && splitPoint.equals(givenBranch.getHeadCommit())) {
-            // two same branches
+//        if (splitPoint.equals(currentBranch.getHeadCommit()) && splitPoint.equals(givenBranch.getHeadCommit())) {
+//            // two same branches
+//            message("Given branch is an ancestor of the current branch.");
+//            return;
+//        }
+        if (currentBranch.commitList.containsAll(givenBranch.commitList)) {
             message("Given branch is an ancestor of the current branch.");
             return;
         }

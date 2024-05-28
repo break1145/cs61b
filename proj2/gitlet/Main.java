@@ -18,12 +18,12 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args){
-
-        if(GITLET_DIR.isDirectory()) {
-            Repository.startCheck();
-        }
         if (args.length == 0) {
             System.out.println("Please enter a command.");
+            System.exit(0);
+        }
+        if(!GITLET_DIR.exists() && !args[0].equals("init")) {
+            message("Not in an initialized Gitlet directory.");
             System.exit(0);
         }
         String firstArg = args[0];
@@ -94,7 +94,7 @@ public class Main {
                 break;
 
             default:
-                // TODO: Output messages for error commands
+                message("No command with that name exists.");
 
 
         }

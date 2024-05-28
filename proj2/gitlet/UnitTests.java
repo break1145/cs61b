@@ -13,8 +13,7 @@ import java.util.*;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class UnitTests {
     @org.junit.Test
@@ -838,6 +837,86 @@ public class UnitTests {
 
 
 
+    }
+
+    @Test
+    public void testResetCommand() {
+        initialize();
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        File h = new File("h.txt");
+        File k = new File("k.txt");
+        /**/
+        restrictedDelete(f.getName());
+        restrictedDelete(g.getName());
+        restrictedDelete(h.getName());
+        restrictedDelete(k.getName());
+        /**/
+        write("f.txt", "wug.txt");
+        write("g.txt", "notwug.txt");
+        add(f);
+        add(g);
+        commit("Two files");
+        branch("other");
+        write("h.txt", "Another Wug\n");
+        add(h);
+        remove(g);
+        commit("add h rm g");
+        log();
+        checkout(new String[]{"checkout", "other"});
+    }
+    @Test
+    public void testtest() {
+        write("h.txt", "Another Wug\n");
+        reset("1e29c40f08937b20e794ac9be088e28b655c20ee");
+        List<String> l= plainFilenamesIn(CWD);
+        System.out.println(l);
+    }
+    @Test
+    public void test43() {
+        initialize();
+        File f = new File("f.txt");
+        File g = new File("g.txt");
+        File h = new File("h.txt");
+        File k = new File("k.txt");
+        /**/
+        restrictedDelete(f.getName());
+        restrictedDelete(g.getName());
+        restrictedDelete(h.getName());
+        restrictedDelete(k.getName());
+
+        branch("given");
+        write("f.txt", "This is a wug.\n");
+        add(f);
+        commit("Add f.txt containing wug.txt");
+        checkout(new String[]{"checkout", "given"});
+        write("f.txt", "This is not a wug.\n");
+        add(f);
+        commit("Add f.txt containing notwug.txt");
+        branch("B");
+        try {
+            merge(readObject(join(Branch_DIR, "master"), branch.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+        System.out.println("f.txt exists: "+ f.exists());
+        if (f.exists()) {
+            System.out.println("f contents: "+ readContentsAsString(f));
+        }
+        System.out.println("g.txt exists: "+ g.exists());
+        if (g.exists()) {
+            System.out.println("k contents: "+ readContentsAsString(g));
+        }
+        System.out.println("h exists: "+ h.exists());
+        if (h.exists()) {
+            System.out.println("h contents: "+ readContentsAsString(h));
+        }
+        System.out.println("k exists: "+ k.exists());
+        if (k.exists()) {
+            System.out.println("k contents: "+ readContentsAsString(k));
+        }
     }
 
 }
